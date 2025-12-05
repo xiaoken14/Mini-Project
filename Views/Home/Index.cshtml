@@ -1,6 +1,23 @@
 @{
     Layout = "_Layout";
-    ViewData["Title"] = "Home";
+    ViewData["Title"] = "Login";
 }
-<h1>Welcome</h1>
-<p>This is the Index view.</p>
+
+<div class="login-container">
+    <h2>Login</h2>
+    @if (ViewData["Error"] != null)
+    {
+        <div class="error-message">@ViewData["Error"]</div>
+    }
+    <form asp-controller="Home" asp-action="Login" method="post">
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" class="form-control" />
+        </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" class="form-control" />
+        </div>
+        <button type="submit" class="btn btn-primary">Sign In</button>
+    </form>
+</div>
