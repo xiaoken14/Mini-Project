@@ -1,0 +1,563 @@
+@model Mini_Project.ViewModels.LoginVM
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@{
+    ViewData["Title"] = "Login | Silver & Scholar Health Scheduler";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --primary-blue: #2a6ebb;
+        --light-blue: #e3f2fd;
+        --patient-color: #4a6fa5;
+        --admin-color: #d32f2f; /* Red for admin */
+        --doctor-color: #388e3c; /* Green for doctor */
+        --success-color: #388e3c;
+        --gradient-start: #1a2980;
+        --gradient-end: #26d0ce;
+    }
+
+    * {
+        font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+        background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+        min-height: 100vh;
+        margin: 0;
+        padding: 20px;
+    }
+
+    .login-wrapper {
+        min-height: calc(100vh - 40px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .login-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+        width: 100%;
+        max-width: 500px;
+        transition: transform 0.3s ease;
+    }
+
+    .login-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .login-header {
+        padding: 30px 30px 20px;
+        text-align: center;
+        background: linear-gradient(135deg, var(--primary-blue), var(--gradient-end));
+        color: white;
+    }
+
+    .login-header h1 {
+        font-size: 1.8rem;
+        font-weight: 600;
+        margin-bottom: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .login-header p {
+        opacity: 0.9;
+        font-size: 0.9rem;
+    }
+
+    .login-navigation {
+        display: flex;
+        gap: 15px;
+        margin: 0 30px 25px;
+    }
+
+    .nav-card {
+        flex: 1;
+        background: white;
+        border-radius: 12px;
+        padding: 20px 15px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 2px solid #e0e0e0;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+
+    .nav-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    .nav-card.active {
+        border-color: var(--patient-color);
+        background: linear-gradient(135deg, #f8f9ff, #e3f2fd);
+        box-shadow: 0 6px 12px rgba(74, 111, 165, 0.15);
+    }
+
+    .nav-card.doctor:hover {
+        border-color: var(--doctor-color);
+    }
+
+    .nav-card.admin:hover {
+        border-color: var(--admin-color);
+    }
+
+    .nav-icon {
+        font-size: 2rem;
+        margin-bottom: 10px;
+        color: var(--patient-color);
+    }
+
+    .nav-card.doctor .nav-icon {
+        color: var(--doctor-color);
+    }
+
+    .nav-card.admin .nav-icon {
+        color: var(--admin-color);
+    }
+
+    .nav-title {
+        font-weight: 600;
+        font-size: 1rem;
+        margin-bottom: 5px;
+        color: #333;
+    }
+
+    .nav-desc {
+        font-size: 0.8rem;
+        color: #666;
+        line-height: 1.3;
+    }
+
+    .form-container {
+        padding: 0 30px 30px;
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+        position: relative;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #333;
+        font-size: 0.9rem;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 14px 50px 14px 16px;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: white;
+    }
+
+    .form-control:focus {
+        border-color: var(--patient-color);
+        box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.1);
+        outline: none;
+    }
+
+    .input-icon {
+        position: absolute;
+        right: 16px;
+        top: 42px;
+        color: #999;
+        font-size: 1.1rem;
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 16px;
+        top: 42px;
+        background: transparent;
+        border: none;
+        color: #999;
+        font-size: 1.1rem;
+        cursor: pointer;
+        z-index: 10;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+    }
+
+    .password-toggle:hover {
+        color: var(--patient-color);
+    }
+
+    .remember-forgot {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .checkbox-container {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+    }
+
+    .checkbox-container input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .forgot-link {
+        color: var(--patient-color);
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: color 0.3s ease;
+    }
+
+    .forgot-link:hover {
+        color: var(--admin-color);
+        text-decoration: underline;
+    }
+
+    .submit-btn {
+        width: 100%;
+        padding: 16px;
+        border: none;
+        border-radius: 10px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-bottom: 1.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: white;
+        background: linear-gradient(to right, var(--patient-color), #6b93d6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .submit-btn:hover {
+        background: linear-gradient(to right, #3a5f95, #5b83c6);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(74, 111, 165, 0.3);
+    }
+
+    .submit-btn:active {
+        transform: translateY(0);
+    }
+
+    .other-logins {
+        text-align: center;
+        padding-top: 20px;
+        border-top: 1px solid #eee;
+    }
+
+    .other-logins p {
+        margin-bottom: 10px;
+        color: #666;
+        font-size: 0.95rem;
+    }
+
+    .other-login-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        margin: 0 5px;
+    }
+
+    .doctor-login-link {
+        color: var(--doctor-color);
+        border: 2px solid var(--doctor-color);
+        background: rgba(56, 142, 60, 0.1);
+    }
+
+    .doctor-login-link:hover {
+        background: var(--doctor-color);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .admin-login-link {
+        color: var(--admin-color);
+        border: 2px solid var(--admin-color);
+        background: rgba(211, 47, 47, 0.1);
+    }
+
+    .admin-login-link:hover {
+        background: var(--admin-color);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .register-section {
+        text-align: center;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid #eee;
+    }
+
+    .register-link {
+        color: var(--patient-color);
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .register-link:hover {
+        color: var(--admin-color);
+        text-decoration: underline;
+    }
+
+    .alert-message {
+        padding: 12px 20px;
+        border-radius: 10px;
+        margin: 0 30px 20px;
+        font-size: 0.9rem;
+        text-align: center;
+        animation: slideDown 0.3s ease;
+    }
+
+    .alert-error {
+        background: #ffebee;
+        color: #c62828;
+        border: 1px solid #ffcdd2;
+    }
+
+    .alert-success {
+        background: #e8f5e9;
+        color: var(--success-color);
+        border: 1px solid #c8e6c9;
+    }
+
+    @@keyframes slideDown {
+        from { transform: translateY(-20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+
+    @@media (max-width: 576px) {
+        body {
+            padding: 10px;
+        }
+        
+        .login-card {
+            max-width: 100%;
+            margin: 0;
+        }
+        
+        .login-header, .form-container {
+            padding: 25px 20px;
+        }
+        
+        .login-navigation {
+            margin: 0 20px 20px;
+            flex-direction: column;
+        }
+        
+        .other-login-link {
+            display: block;
+            margin: 8px 0;
+        }
+    }
+</style>
+
+<div class="login-wrapper">
+    <div class="login-card">
+        <div class="login-header">
+            <h1><i class="bi bi-calendar-heart"></i> Silver & Scholar Health</h1>
+            <p>Patient Login Portal</p>
+        </div>
+
+        @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+        {
+            <div class="alert-message alert-error">
+                <i class="bi bi-exclamation-triangle"></i> @ViewBag.ErrorMessage
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(ViewBag.SuccessMessage))
+        {
+            <div class="alert-message alert-success">
+                <i class="bi bi-check-circle"></i> @ViewBag.SuccessMessage
+            </div>
+        }
+
+        <div class="login-navigation">
+            <a href="#" class="nav-card active">
+                <i class="bi bi-person-circle nav-icon"></i>
+                <div class="nav-title">Patient Login</div>
+                <div class="nav-desc">Book appointments & manage health</div>
+            </a>
+            
+            <a asp-action="DoctorLogin" asp-controller="Account" class="nav-card doctor">
+                <i class="bi bi-activity nav-icon"></i>
+                <div class="nav-title">Doctor Login</div>
+                <div class="nav-desc">Manage schedule & consultations</div>
+            </a>
+            
+            <a asp-action="AdminLogin" asp-controller="Account" class="nav-card admin">
+                <i class="bi bi-shield-check nav-icon"></i>
+                <div class="nav-title">Admin Login</div>
+                <div class="nav-desc">System management & reports</div>
+            </a>
+        </div>
+
+        <!-- Patient Login Form -->
+        <div class="form-container">
+            <form asp-action="Login" asp-controller="Account" method="post">
+                <div class="form-group">
+                    <label class="form-label" asp-for="Email">Email Address</label>
+                    <input asp-for="Email" class="form-control" placeholder="Enter your email" />
+                    <i class="bi bi-envelope input-icon"></i>
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" asp-for="Password">Password</label>
+                    <input asp-for="Password" type="password" class="form-control" id="passwordInput" placeholder="Enter your password" />
+                    <button type="button" class="password-toggle" id="togglePassword">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                    <span asp-validation-for="Password" class="text-danger small"></span>
+                </div>
+
+                <div class="remember-forgot">
+                    <label class="checkbox-container">
+                        <input asp-for="RememberMe" type="checkbox" />
+                        <span>Remember me</span>
+                    </label>
+                    <a href="#" class="forgot-link">Forgot Password?</a>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    <i class="bi bi-box-arrow-in-right"></i> Patient Login
+                </button>
+            </form>
+        </div>
+
+        <div class="other-logins">
+            <p>Are you a doctor or administrator?</p>
+            <div>
+                <a asp-action="DoctorLogin" asp-controller="Account" class="other-login-link doctor-login-link">
+                    <i class="bi bi-activity"></i> Doctor Login
+                </a>
+                <a asp-action="AdminLogin" asp-controller="Account" class="other-login-link admin-login-link">
+                    <i class="bi bi-shield-check"></i> Admin Login
+                </a>
+            </div>
+        </div>
+
+        <div class="register-section">
+            <p>Don't have an account? 
+                <a asp-action="Register" asp-controller="Account" class="register-link">
+                    <i class="bi bi-person-plus"></i> Create Account
+                </a>
+            </p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Password visibility toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleButton = document.getElementById('togglePassword');
+            const passwordInput = document.getElementById('passwordInput');
+            
+            if (toggleButton && passwordInput) {
+                toggleButton.addEventListener('click', function() {
+                    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                    passwordInput.setAttribute('type', type);
+                    
+                    // Toggle eye icon
+                    const icon = this.querySelector('i');
+                    if (type === 'text') {
+                        icon.classList.remove('bi-eye');
+                        icon.classList.add('bi-eye-slash');
+                    } else {
+                        icon.classList.remove('bi-eye-slash');
+                        icon.classList.add('bi-eye');
+                    }
+                });
+            }
+            
+            // Simple hover effect for navigation cards
+            const navCards = document.querySelectorAll('.nav-card');
+            
+            navCards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-3px)';
+                    this.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.1)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    if (!this.classList.contains('active')) {
+                        this.style.transform = 'translateY(0)';
+                        this.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.05)';
+                    }
+                });
+            });
+            
+            // Form validation
+            const form = document.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    const email = document.querySelector('input[name="Email"]');
+                    const password = document.querySelector('input[name="Password"]');
+                    let isValid = true;
+                    
+                    if (!email.value.trim()) {
+                        isValid = false;
+                        email.style.borderColor = '#f44336';
+                    }
+                    
+                    if (!password.value.trim()) {
+                        isValid = false;
+                        password.style.borderColor = '#f44336';
+                    }
+                    
+                    if (!isValid) {
+                        e.preventDefault();
+                    }
+                });
+            }
+            
+            // Clear validation on focus
+            document.querySelectorAll('.form-control').forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.style.borderColor = 'var(--patient-color)';
+                });
+            });
+        });
+    </script>
+}

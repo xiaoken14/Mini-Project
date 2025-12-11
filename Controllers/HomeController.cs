@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Mini_Project.Models;
 
 namespace Mini_Project.Controllers
 {
@@ -21,6 +22,19 @@ namespace Mini_Project.Controllers
                 ViewData["Error"] = "Invalid username or password";
                 return View("Index");
             }
+        }
+
+        public IActionResult Patient()
+        {
+            // Mock patient data for demonstration
+            var patient = new Patient
+            {
+                Patient_ID = 1,
+                Full_Name = "John Doe",
+                Email = "john.doe@example.com",
+                Contact_No = "123-456-7890"
+            };
+            return View(patient);
         }
 
         public IActionResult Error() => View();
