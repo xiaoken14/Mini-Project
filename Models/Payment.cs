@@ -1,5 +1,5 @@
-using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Mini_Project.Models
 {
@@ -8,20 +8,20 @@ namespace Mini_Project.Models
         [Key]
         public int Payment_ID { get; set; }
 
-        public int Patient_ID { get; set; }
-        public Patient? Patient { get; set; }
-
+        [ForeignKey("Appointment")]
         public int Appointment_ID { get; set; }
-        public Appointment? Appointment { get; set; }
 
+        [Column(TypeName = "decimal(10, 2)")]
         public decimal Amount { get; set; }
 
         public DateTime Payment_Date { get; set; }
 
         [StringLength(20)]
-        public string Payment_Status { get; set; } = string.Empty;
+        public string? Payment_Status { get; set; }
 
-        [StringLength(50)]
-        public string Payment_Method { get; set; } = string.Empty;
+        [StringLength(20)]
+        public string? Payment_Method { get; set; }
+
+        public virtual Appointment? Appointment { get; set; }
     }
 }

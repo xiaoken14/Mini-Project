@@ -1,5 +1,5 @@
-using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Mini_Project.Models
 {
@@ -8,13 +8,16 @@ namespace Mini_Project.Models
         [Key]
         public int Notification_ID { get; set; }
 
-        public int User_ID { get; set; }
+        [ForeignKey("Appointment")]
+        public int Appointment_ID { get; set; }
 
-        [Required]
-        public string Message { get; set; } = string.Empty;
+        public string? Message { get; set; }
 
-        public DateTime Timestamp { get; set; } = DateTime.Now;
+        public DateTime Notification_DateTime { get; set; }
 
-        public bool Is_Read { get; set; }
+        [StringLength(30)]
+        public string? Type { get; set; }
+
+        public virtual Appointment? Appointment { get; set; }
     }
 }

@@ -9,15 +9,23 @@ namespace Mini_Project.Models
 
         [Required]
         [StringLength(100)]
-        public string User_Name { get; set; } = string.Empty;
+        public string Full_Name { get; set; } = "";
 
         [Required]
-        [StringLength(100)]
         [EmailAddress]
-        public string Email { get; set; } = string.Empty;
+        public string Email { get; set; } = "";
 
         [Required]
-        [StringLength(255)]
-        public string Password { get; set; } = string.Empty;
+        public string Password { get; set; } = "";
+
+        [StringLength(20)]
+        public string? Contact_No { get; set; }
+
+        public DateTime Date_Created { get; set; } = DateTime.UtcNow;
+
+        public ICollection<Doctor> Doctors { get; set; } = new List<Doctor>();
+        public ICollection<Patient> Patients { get; set; } = new List<Patient>();
+        public ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
+        public ICollection<Report> Reports { get; set; } = new List<Report>();
     }
 }

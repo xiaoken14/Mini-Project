@@ -1,7 +1,8 @@
-using Microsoft.AspNetCore.Identity;
+
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using Mini_Project;
 using Mini_Project.Data;
-using Mini_Project.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,30 +16,51 @@ Directory.CreateDirectory(Path.GetDirectoryName(dbPath)!);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite($"Data Source={dbPath}"));
 
-// Add Identity services
-builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+// Add Authentication
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login";
+        options.AccessDeniedPath = "/Account/AccessDenied";
+    });
+
+// Add HttpContextAccessor
+builder.Services.AddHttpContextAccessor();
+
+// Add Helper class
+builder.Services.AddScoped<Helper>();
+
+// Add Session
+builder.Services.AddSession(options =>
 {
-    options.SignIn.RequireConfirmedAccount = true; // Enable email confirmation
-    options.Password.RequiredLength = 6;
-    options.Password.RequireDigit = false;
-    options.Password.RequireLowercase = false;
-    options.Password.RequireNonAlphanumeric = false;
-    options.Password.RequireUppercase = false;
-    options.User.RequireUniqueEmail = true;
-})
-.AddEntityFrameworkStores<ApplicationDbContext>()
-.AddDefaultTokenProviders();
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
 
 // Add controllers with views
 builder.Services.AddControllersWithViews();
 
-// Email Sender - simple dev implementation
-builder.Services.AddSingleton<IEmailSender>(new EmailSender("localhost", 25, "noreply@example.com", "password"));
 
 var app = builder.Build();
 
+// Configure the HTTP request pipeline.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Home/Error");
+    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseHsts();
+}
+
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+
 // Middleware for routing
 app.UseRouting();
+
+// Use Session
+app.UseSession();
 
 // Authentication and Authorization middleware
 app.UseAuthentication();

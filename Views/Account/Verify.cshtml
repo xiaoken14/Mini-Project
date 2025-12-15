@@ -1,0 +1,42 @@
+
+@{ 
+    ViewData["Title"] = "Verify Account";
+}
+
+<!-- Fullscreen centered container -->
+<div class="d-flex align-items-center justify-content-center vh-100 bg-light">
+    <!-- Card container -->
+    <div class="card shadow-lg border-0 rounded-4" style="width: 400px;">
+        <div class="card-body p-4">
+
+            <!-- Title -->
+            <h3 class="text-center mb-4 fw-bold text-primary">
+                <i class="bi bi-shield-check"></i> Verify Your Account
+            </h3>
+
+            <p class="text-center text-muted">A verification code has been sent to your email and phone.</p>
+
+            <!-- Verification form -->
+            <form asp-action="Verify" method="post">
+                <!-- Code input -->
+                <div class="form-group mb-3">
+                    <label for="code" class="form-label">Enter Verification Code</label>
+                    <input type="text" class="form-control text-center"
+                           id="code" name="code"
+                           placeholder="6-digit code" required />
+                </div>
+
+                <!-- Submit button -->
+                <button type="submit" class="btn btn-primary w-100 fw-bold">
+                    <i class="bi bi-check-circle"></i> Verify
+                </button>
+            </form>
+
+            <!-- Error message (if verification fails) -->
+            @if (ViewBag.Error != null)
+            {
+                <div class="alert alert-danger mt-3">@ViewBag.Error</div>
+            }
+        </div>
+    </div>
+</div>

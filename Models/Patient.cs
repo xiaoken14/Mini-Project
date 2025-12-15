@@ -1,6 +1,5 @@
-using Microsoft.AspNetCore.Identity;
-using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Mini_Project.Models
 {
@@ -11,30 +10,36 @@ namespace Mini_Project.Models
 
         [Required]
         [StringLength(100)]
-        public string Full_Name { get; set; } = string.Empty;
+        public string Full_Name { get; set; } = "";
 
         [Required]
         [StringLength(100)]
         [EmailAddress]
-        public string Email { get; set; } = string.Empty;
+        public string Email { get; set; } = "";
+
+        [Required]
+        [StringLength(255)]
+        public string Password { get; set; } = "";
 
         [StringLength(20)]
-        public string Contact_No { get; set; } = string.Empty;
+        public string? Contact_No { get; set; }
 
-        public DateTime Date_of_Birth { get; set; }
+        public int Age { get; set; }
+
+        [StringLength(20)]
+        public string? Category { get; set; }
 
         [StringLength(10)]
-        public string Gender { get; set; } = string.Empty;
+        public string? Discount_Eligibility { get; set; }
 
-        public string Medical_History { get; set; } = string.Empty;
+        // Must be nullable for self-registration
+        public int? Admin_ID { get; set; }
 
-        public DateTime CreatedDate { get; set; }
-
-        public int Admin_ID { get; set; }
-        public Admin? Admin { get; set; }
-
-        // Foreign key for the IdentityUser
-        public string? UserId { get; set; }
-        public IdentityUser? User { get; set; }
+        [ForeignKey("Admin_ID")]
+        public virtual Admin? Admin { get; set; }
+        
+        // This helper property is not in the database table, but needed for the Controller logic
+        public string? EmailConfirmationToken { get; set; }
+        public bool EmailConfirmed { get; set; }
     }
 }

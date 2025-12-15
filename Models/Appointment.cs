@@ -1,5 +1,5 @@
-using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Mini_Project.Models
 {
@@ -8,20 +8,32 @@ namespace Mini_Project.Models
         [Key]
         public int Appointment_ID { get; set; }
 
-        public int Patient_ID { get; set; }
-        public Patient? Patient { get; set; }
+        public int Admin_ID { get; set; }
 
         public int Doctor_ID { get; set; }
-        public Doctor? Doctor { get; set; }
+
+        public int Patient_ID { get; set; }
 
         public DateTime Appointment_Date { get; set; }
 
-        [StringLength(50)]
-        public string Slot { get; set; } = string.Empty;
+        public TimeSpan Appointment_Time { get; set; }
 
         [StringLength(20)]
-        public string Status { get; set; } = string.Empty;
+        public string? Status { get; set; }
 
-        public string Remarks { get; set; } = string.Empty;
+        [StringLength(20)]
+        public string? Priority { get; set; }
+
+        [StringLength(10)]
+        public string? Discount_Applied { get; set; }
+
+        [ForeignKey("Admin_ID")]
+        public virtual Admin? Admin { get; set; }
+
+        [ForeignKey("Doctor_ID")]
+        public virtual Doctor? Doctor { get; set; }
+
+        [ForeignKey("Patient_ID")]
+        public virtual Patient? Patient { get; set; }
     }
 }

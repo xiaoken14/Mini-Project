@@ -31,7 +31,6 @@ namespace Mini_Project.Controllers
             {
                 Patient_ID = 1,
                 Full_Name = "John Doe",
-                Email = "john.doe@example.com",
                 Contact_No = "123-456-7890"
             };
             return View(patient);

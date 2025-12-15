@@ -456,10 +456,9 @@
 <div class="register-wrapper">
     <!-- Toast container -->
     <div id="toastContainer" style="position:fixed;top:20px;right:20px;z-index:1100;display:flex;flex-direction:column;gap:10px;"> </div>
-    <!-- Debug panel: visible during troubleshooting only -->
-    <div id="debugPanel" style="position:fixed;bottom:20px;left:20px;z-index:1200;background:rgba(0,0,0,0.6);color:#fff;padding:8px 12px;border-radius:8px;font-size:0.9rem;display:flex;gap:8px;align-items:center;">
-        <span>Toggle clicks: <b id="toggleClickCount">0</b></span>
-        <button type="button" id="debugTestBtn" style="background:#fff;color:#000;border-radius:6px;padding:6px 8px;border:none;cursor:pointer">Test Toggle</button>
+    <!-- Debug panel -->
+    <div id="debugPanel" style="display:none; position:fixed;bottom:20px;left:20px;z-index:1200;background:rgba(0,0,0,0.6);color:#fff;padding:8px 12px;border-radius:8px;font-size:0.9rem;">
+        <span>Debug Mode</span>
     </div>
     <div class="register-card">
         <div class="register-header">
@@ -590,7 +589,6 @@
     <partial name="_ValidationScriptsPartial" />
     
     <script>
-        // Immediate toggle function used by inline onclick as a robust fallback
         function togglePasswordImmediate(selector, btn) {
             try {
                 var input = document.querySelector(selector);
@@ -604,123 +602,46 @@
                     btn.title = isPwd ? 'Hide password' : 'Show password';
                 }
                 try { input.focus(); } catch (e) { }
-            } catch (e) { console && console.error && console.error(e); }
+            } catch (e) { console.error(e); }
         }
+
         document.addEventListener('DOMContentLoaded', function() {
-            // Password visibility toggles (attach to all .password-toggle buttons)
             const passwordInput = document.getElementById('passwordInput');
             const confirmPasswordInput = document.getElementById('confirmPasswordInput');
 
-            console.log('Password toggle init');
-            // attach handlers using event capture and ensure styling
-                document.querySelectorAll('.password-toggle').forEach(btn => {
-                const target = btn.getAttribute('data-target');
-                const input = target ? document.querySelector(target) : btn.previousElementSibling;
-                btn.style.zIndex = 9999;
-                btn.style.pointerEvents = 'auto';
-                btn.setAttribute('aria-pressed', 'false');
-                btn.title = 'Show password';
-                // use capturing listener to be robust against other handlers
-                btn.addEventListener('click', function(e) {
-                    console.log('password-toggle clicked', target, !!input);
-                    // increment visible debug counter
-                    try {
-                        window.passwordToggleClickCount = (window.passwordToggleClickCount || 0) + 1;
-                        const counterEl = document.getElementById('toggleClickCount');
-                        if (counterEl) counterEl.innerText = window.passwordToggleClickCount;
-                    } catch (err) { console && console.warn && console.warn('debug counter error', err); }
-                    if (!input) return;
-                    const isPwd = input.getAttribute('type') === 'password';
-                    input.setAttribute('type', isPwd ? 'text' : 'password');
-                    const icon = this.querySelector('i');
-                    if (icon) {
-                        icon.className = isPwd ? 'bi bi-eye-slash' : 'bi bi-eye';
-                    }
-                    this.setAttribute('aria-pressed', isPwd ? 'true' : 'false');
-                    this.title = isPwd ? 'Hide password' : 'Show password';
-                    try { input.focus(); } catch { }
-                }, true);
-            });
-
-            // Debug test button: immediately toggle both fields when clicked
-            try {
-                const debugTestBtn = document.getElementById('debugTestBtn');
-                if (debugTestBtn) {
-                    debugTestBtn.addEventListener('click', function() {
-                        togglePasswordImmediate('#passwordInput', document.getElementById('togglePassword1'));
-                        togglePasswordImmediate('#confirmPasswordInput', document.getElementById('togglePassword2'));
-                        // also increment counter to reflect the test
-                        window.passwordToggleClickCount = (window.passwordToggleClickCount || 0) + 1;
-                        const c = document.getElementById('toggleClickCount'); if (c) c.innerText = window.passwordToggleClickCount;
-                        console.log('debugTestBtn clicked');
-                    });
-                }
-            } catch (e) { console && console.warn && console.warn('debug test attach failed', e); }
-
-            // global click listener for debug (remove later if desired)
-            document.addEventListener('click', function(e) {
-                const el = e.target;
-                if (el && el.classList && el.classList.contains && el.classList.contains('password-toggle')) {
-                    console.log('captured password-toggle on document click');
-                }
-            }, true);
-
             if (passwordInput) {
-
-                // Password strength indicator
                 passwordInput.addEventListener('input', function() {
                     const password = this.value;
                     const strengthBar = document.getElementById('passwordStrength');
-
                     if (!strengthBar) return;
-
-                    // Reset
                     strengthBar.className = 'strength-bar';
                     strengthBar.style.width = '0';
-
                     if (password.length === 0) return;
-
                     let strength = 0;
-
                     if (password.length >= 8) strength++;
                     if (/[A-Z]/.test(password)) strength++;
                     if (/[0-9]/.test(password)) strength++;
                     if (/[^A-Za-z0-9]/.test(password)) strength++;
-
-                    if (strength >= 4) {
-                        strengthBar.classList.add('strength-strong');
-                    } else if (strength >= 2) {
-                        strengthBar.classList.add('strength-medium');
-                    } else {
-                        strengthBar.classList.add('strength-weak');
-                    }
-
+                    if (strength >= 4) strengthBar.classList.add('strength-strong');
+                    else if (strength >= 2) strengthBar.classList.add('strength-medium');
+                    else strengthBar.classList.add('strength-weak');
                     this.classList.remove('error', 'success');
-                    if (strength < 2) {
-                        this.classList.add('error');
-                    } else {
-                        this.classList.add('success');
-                    }
+                    if (strength < 2) this.classList.add('error');
+                    else this.classList.add('success');
                 });
             }
 
             if (confirmPasswordInput) {
-                togglePasswordVisibility(togglePassword2, confirmPasswordInput);
-
-                // Password match validation
                 confirmPasswordInput.addEventListener('input', function() {
                     const passwordMatchError = document.getElementById('passwordMatchError');
                     const password = passwordInput ? passwordInput.value : '';
                     const confirm = this.value;
-
                     if (!passwordMatchError) return;
-
                     if (confirm.length === 0) {
                         passwordMatchError.style.display = 'none';
                         this.classList.remove('error', 'success');
                         return;
                     }
-
                     if (password !== confirm) {
                         passwordMatchError.style.display = 'flex';
                         this.classList.add('error');
@@ -733,7 +654,6 @@
                 });
             }
 
-            // Form submission validation
             const form = document.getElementById('registerForm');
             const submitBtn = document.getElementById('submitBtn');
             const agreeTerms = document.getElementById('agreeTerms');
@@ -742,34 +662,28 @@
                 form.addEventListener('submit', function(e) {
                     let isValid = true;
                     const inputs = form.querySelectorAll('input[required]');
-
                     inputs.forEach(input => input.classList.remove('error'));
-
                     inputs.forEach(input => {
                         if (!input.value.trim()) {
                             input.classList.add('error');
                             isValid = false;
                         }
                     });
-
                     const password = passwordInput ? passwordInput.value : '';
                     const confirm = confirmPasswordInput ? confirmPasswordInput.value : '';
                     const passwordMatchError = document.getElementById('passwordMatchError');
-
                     if (password && confirm && password !== confirm) {
                         if (passwordInput) passwordInput.classList.add('error');
                         if (confirmPasswordInput) confirmPasswordInput.classList.add('error');
                         if (passwordMatchError) passwordMatchError.style.display = 'flex';
                         isValid = false;
                     }
-
                     if (agreeTerms && !agreeTerms.checked) {
                         if (agreeTerms.parentElement) agreeTerms.parentElement.style.borderColor = '#ff4757';
                         isValid = false;
                     } else if (agreeTerms && agreeTerms.parentElement) {
                         agreeTerms.parentElement.style.borderColor = '';
                     }
-
                     if (!isValid) {
                         e.preventDefault();
                         if (submitBtn) {
@@ -779,19 +693,16 @@
                     }
                 });
 
-                // Real-time validation
                 form.querySelectorAll('input').forEach(input => {
                     input.addEventListener('blur', function() {
                         if (this.hasAttribute('required') && !this.value.trim()) this.classList.add('error');
                     });
-
                     input.addEventListener('input', function() {
                         if (this.value.trim()) this.classList.remove('error');
                     });
                 });
             }
 
-            // Server-side messages toast
             function createToast(message, type = 'info', timeout = 5000) {
                 const container = document.getElementById('toastContainer');
                 if (!container) return;
@@ -809,19 +720,14 @@
                 setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.4s'; setTimeout(()=> toast.remove(), 450); }, timeout);
             }
 
-            // Render any server messages
-            @* TempData Error *@
             @if (TempData["Error"] != null)
             {
                 <text>createToast(@System.Text.Json.JsonSerializer.Serialize(TempData["Error"]?.ToString()), 'error', 6000);</text>
             }
-
-            @* ModelState errors will already be shown in the validation summary; optionally show a toast prompt *@
             @if (!ViewData.ModelState.IsValid)
             {
                 <text>createToast("Please fix the highlighted errors and try again.", 'error', 6000);</text>
             }
-
             @if (ViewBag.SuccessMessage != null)
             {
                 <text>createToast(@System.Text.Json.JsonSerializer.Serialize(ViewBag.SuccessMessage?.ToString()), 'success', 6000);</text>
