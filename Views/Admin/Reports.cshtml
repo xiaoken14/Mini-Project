@@ -1,0 +1,306 @@
+@model HealthcareApp.Controllers.AdminReportsViewModel
+@{
+    ViewData["Title"] = "Reports";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-chart-bar"></i> Reports & Analytics</h2>
+    <a asp-action="Index" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
+<div class="row">
+    <!-- Doctors by Specialty -->
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-user-md"></i> Doctors by Specialty
+                </h6>
+            </div>
+            <div class="card-body">
+                @if (Model.DoctorsBySpecialty.Any())
+                {
+                    <canvas id="specialtyChart" width="400" height="200"></canvas>
+                    <div class="mt-3">
+                        @foreach (var specialty in Model.DoctorsBySpecialty)
+                        {
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span>@specialty.Specialty</span>
+                                <span class="badge bg-primary">@specialty.Count</span>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <i class="fas fa-chart-pie fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No specialty data available</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Appointments by Status -->
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-calendar-check"></i> Appointments by Status
+                </h6>
+            </div>
+            <div class="card-body">
+                @if (Model.AppointmentsByStatus.Any())
+                {
+                    <canvas id="statusChart" width="400" height="200"></canvas>
+                    <div class="mt-3">
+                        @foreach (var status in Model.AppointmentsByStatus)
+                        {
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span>@status.Status</span>
+                                <span class="badge bg-@(status.Status == "Confirmed" ? "success" : 
+                                                      status.Status == "Pending" ? "warning" : 
+                                                      status.Status == "Completed" ? "info" :
+                                                      status.Status == "Cancelled" ? "danger" : "secondary")">
+                                    @status.Count
+                                </span>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <i class="fas fa-chart-pie fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No appointment data available</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Monthly Appointments Trend -->
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-chart-line"></i> Monthly Appointments Trend (Last 6 Months)
+                </h6>
+            </div>
+            <div class="card-body">
+                @if (Model.MonthlyAppointments.Any())
+                {
+                    <canvas id="monthlyChart" width="400" height="100"></canvas>
+                    <div class="row mt-3">
+                        @foreach (var month in Model.MonthlyAppointments)
+                        {
+                            <div class="col-md-2 text-center mb-2">
+                                <div class="card bg-light">
+                                    <div class="card-body py-2">
+                                        <small class="text-muted">@month.Month</small>
+                                        <h6 class="mb-0">@month.Count</h6>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4">
+                        <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No monthly data available</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row">
+    <div class="col-md-3 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Specialties</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.DoctorsBySpecialty.Count</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-stethoscope fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Total Appointments</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.AppointmentsByStatus.Sum(a => a.Count)</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-calendar-alt fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Confirmed Appointments</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">@(Model.AppointmentsByStatus.FirstOrDefault(a => a.Status == "Confirmed")?.Count ?? 0)</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending Appointments</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">@(Model.AppointmentsByStatus.FirstOrDefault(a => a.Status == "Pending")?.Count ?? 0)</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-clock fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .border-left-primary {
+        border-left: 0.25rem solid #4e73df !important;
+    }
+    .border-left-success {
+        border-left: 0.25rem solid #1cc88a !important;
+    }
+    .border-left-info {
+        border-left: 0.25rem solid #36b9cc !important;
+    }
+    .border-left-warning {
+        border-left: 0.25rem solid #f6c23e !important;
+    }
+    .text-gray-800 {
+        color: #5a5c69 !important;
+    }
+    .text-gray-300 {
+        color: #dddfeb !important;
+    }
+</style>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Doctors by Specialty Chart
+        @if (Model.DoctorsBySpecialty.Any())
+        {
+            <text>
+            const specialtyCtx = document.getElementById('specialtyChart').getContext('2d');
+            new Chart(specialtyCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: [@Html.Raw(string.Join(",", Model.DoctorsBySpecialty.Select(s => $"'{s.Specialty}'")))],
+                    datasets: [{
+                        data: [@string.Join(",", Model.DoctorsBySpecialty.Select(s => s.Count))],
+                        backgroundColor: [
+                            '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b',
+                            '#858796', '#5a5c69', '#6f42c1', '#e83e8c', '#fd7e14'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+            </text>
+        }
+
+        // Appointments by Status Chart
+        @if (Model.AppointmentsByStatus.Any())
+        {
+            <text>
+            const statusCtx = document.getElementById('statusChart').getContext('2d');
+            new Chart(statusCtx, {
+                type: 'pie',
+                data: {
+                    labels: [@Html.Raw(string.Join(",", Model.AppointmentsByStatus.Select(s => $"'{s.Status}'")))],
+                    datasets: [{
+                        data: [@string.Join(",", Model.AppointmentsByStatus.Select(s => s.Count))],
+                        backgroundColor: ['#1cc88a', '#f6c23e', '#36b9cc', '#e74a3b', '#858796']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+            </text>
+        }
+
+        // Monthly Appointments Chart
+        @if (Model.MonthlyAppointments.Any())
+        {
+            <text>
+            const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+            new Chart(monthlyCtx, {
+                type: 'line',
+                data: {
+                    labels: [@Html.Raw(string.Join(",", Model.MonthlyAppointments.Select(m => $"'{m.Month}'")))],
+                    datasets: [{
+                        label: 'Appointments',
+                        data: [@string.Join(",", Model.MonthlyAppointments.Select(m => m.Count))],
+                        borderColor: '#4e73df',
+                        backgroundColor: 'rgba(78, 115, 223, 0.1)',
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+            </text>
+        }
+    </script>
+}

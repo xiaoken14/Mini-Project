@@ -22,6 +22,9 @@ namespace HealthcareApp.Models
         public string? EmailOTP { get; set; }
         public DateTime? OTPExpiry { get; set; }
         public int OTPAttempts { get; set; } = 0;
+        
+        // Additional tracking properties
+        public DateTime? LastLoginTime { get; set; }
     }
 
     public enum UserRole

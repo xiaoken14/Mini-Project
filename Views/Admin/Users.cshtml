@@ -1,0 +1,132 @@
+@model IEnumerable<HealthcareApp.Models.ApplicationUser>
+@{
+    ViewData["Title"] = "Manage Users";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-user-cog"></i> Manage Users</h2>
+    <a asp-action="Index" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="card shadow">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">All Users (@Model.Count())</h6>
+    </div>
+    <div class="card-body">
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover" id="usersTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Role</th>
+                            <th>Email Verified</th>
+                            <th>Status</th>
+                            <th>Registered</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var user in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-sm me-3">
+                                            <div class="bg-@(user.Role == UserRole.Admin ? "danger" : user.Role == UserRole.Doctor ? "primary" : "success") rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                <i class="fas fa-@(user.Role == UserRole.Admin ? "user-shield" : user.Role == UserRole.Doctor ? "user-md" : "user") text-white"></i>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <strong>@user.FirstName @user.LastName</strong>
+                                            <br><small class="text-muted">@user.Role</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>@user.Email</td>
+                                <td>@user.PhoneNumber</td>
+                                <td>
+                                    <span class="badge bg-@(user.Role == UserRole.Admin ? "danger" : user.Role == UserRole.Doctor ? "primary" : "success")">
+                                        @user.Role
+                                    </span>
+                                </td>
+                                <td>
+                                    @if (user.EmailConfirmed)
+                                    {
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check"></i> Verified
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning">
+                                            <i class="fas fa-clock"></i> Pending
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="badge bg-@(user.LockoutEnd == null ? "success" : "danger")">
+                                        @(user.LockoutEnd == null ? "Active" : "Disabled")
+                                    </span>
+                                </td>
+                                <td>
+                                    <small>@user.CreatedAt.ToString("MMM dd, yyyy")</small>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a asp-action="UserDetails" asp-route-id="@user.Id" class="btn btn-sm btn-outline-info" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        @if (user.Role != UserRole.Admin)
+                                        {
+                                            <form asp-action="ToggleUserStatus" asp-route-userId="@user.Id" method="post" class="d-inline">
+                                                <button type="submit" class="btn btn-sm btn-outline-@(user.LockoutEnd == null ? "warning" : "success")" title="@(user.LockoutEnd == null ? "Disable" : "Enable")">
+                                                    <i class="fas fa-@(user.LockoutEnd == null ? "ban" : "check")"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="fas fa-user-cog fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No users found</h5>
+                <p class="text-muted">Users will appear here once they register.</p>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#usersTable').DataTable({
+                "pageLength": 10,
+                "order": [[ 6, "desc" ]],
+                "columnDefs": [
+                    { "orderable": false, "targets": 7 }
+                ]
+            });
+        });
+    </script>
+}

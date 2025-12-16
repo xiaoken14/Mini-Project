@@ -1,0 +1,269 @@
+@{
+    ViewData["Title"] = "System Settings";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-cog"></i> System Settings</h2>
+    <a asp-action="Index" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="row">
+    <!-- General Settings -->
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-sliders-h"></i> General Settings
+                </h6>
+            </div>
+            <div class="card-body">
+                <form>
+                    <div class="mb-3">
+                        <label class="form-label">System Name</label>
+                        <input type="text" class="form-control" value="HealthCarePro" readonly>
+                        <small class="form-text text-muted">The name displayed throughout the application</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Time Zone</label>
+                        <select class="form-select">
+                            <option selected>UTC (Coordinated Universal Time)</option>
+                            <option>EST (Eastern Standard Time)</option>
+                            <option>PST (Pacific Standard Time)</option>
+                            <option>CST (Central Standard Time)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Date Format</label>
+                        <select class="form-select">
+                            <option selected>MM/DD/YYYY</option>
+                            <option>DD/MM/YYYY</option>
+                            <option>YYYY-MM-DD</option>
+                        </select>
+                    </div>
+                    
+                    <button type="button" class="btn btn-primary" disabled>
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Email Settings -->
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-envelope"></i> Email Settings
+                </h6>
+            </div>
+            <div class="card-body">
+                <form>
+                    <div class="mb-3">
+                        <label class="form-label">SMTP Server</label>
+                        <input type="text" class="form-control" placeholder="smtp.gmail.com" readonly>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Port</label>
+                            <input type="number" class="form-control" value="587" readonly>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Security</label>
+                            <select class="form-select" disabled>
+                                <option selected>TLS</option>
+                                <option>SSL</option>
+                                <option>None</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">From Email</label>
+                        <input type="email" class="form-control" placeholder="noreply@healthcarepro.com" readonly>
+                    </div>
+                    
+                    <button type="button" class="btn btn-primary" disabled>
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Security Settings -->
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-shield-alt"></i> Security Settings
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="requireEmailVerification" checked disabled>
+                        <label class="form-check-label" for="requireEmailVerification">
+                            Require Email Verification
+                        </label>
+                    </div>
+                    <small class="form-text text-muted">Users must verify their email before accessing the system</small>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="enableTwoFactor" disabled>
+                        <label class="form-check-label" for="enableTwoFactor">
+                            Enable Two-Factor Authentication
+                        </label>
+                    </div>
+                    <small class="form-text text-muted">Require additional verification for login</small>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Password Policy</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="requireUppercase" checked disabled>
+                        <label class="form-check-label" for="requireUppercase">
+                            Require uppercase letters
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="requireNumbers" checked disabled>
+                        <label class="form-check-label" for="requireNumbers">
+                            Require numbers
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="requireSpecialChars" checked disabled>
+                        <label class="form-check-label" for="requireSpecialChars">
+                            Require special characters
+                        </label>
+                    </div>
+                </div>
+                
+                <button type="button" class="btn btn-primary" disabled>
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Information -->
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-info-circle"></i> System Information
+                </h6>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Version:</dt>
+                    <dd class="col-sm-8">1.0.0</dd>
+                    
+                    <dt class="col-sm-4">Framework:</dt>
+                    <dd class="col-sm-8">ASP.NET Core 8.0</dd>
+                    
+                    <dt class="col-sm-4">Database:</dt>
+                    <dd class="col-sm-8">SQLite</dd>
+                    
+                    <dt class="col-sm-4">Server Time:</dt>
+                    <dd class="col-sm-8">@DateTime.Now.ToString("MMMM dd, yyyy HH:mm:ss")</dd>
+                    
+                    <dt class="col-sm-4">Uptime:</dt>
+                    <dd class="col-sm-8">
+                        <span class="badge bg-success">Online</span>
+                    </dd>
+                </dl>
+                
+                <hr>
+                
+                <div class="row text-center">
+                    <div class="col-md-4">
+                        <div class="mb-2">
+                            <i class="fas fa-database fa-2x text-primary"></i>
+                        </div>
+                        <h6>Database</h6>
+                        <span class="badge bg-success">Connected</span>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-2">
+                            <i class="fas fa-envelope fa-2x text-info"></i>
+                        </div>
+                        <h6>Email Service</h6>
+                        <span class="badge bg-success">Active</span>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-2">
+                            <i class="fas fa-shield-alt fa-2x text-warning"></i>
+                        </div>
+                        <h6>Security</h6>
+                        <span class="badge bg-success">Enabled</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Maintenance Actions -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-tools"></i> Maintenance Actions
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning" role="alert">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Warning:</strong> These actions should only be performed by system administrators and may affect system performance.
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <button type="button" class="btn btn-outline-info w-100" disabled>
+                            <i class="fas fa-sync"></i><br>
+                            Clear Cache
+                        </button>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <button type="button" class="btn btn-outline-warning w-100" disabled>
+                            <i class="fas fa-database"></i><br>
+                            Backup Database
+                        </button>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <button type="button" class="btn btn-outline-success w-100" disabled>
+                            <i class="fas fa-download"></i><br>
+                            Export Data
+                        </button>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <button type="button" class="btn btn-outline-secondary w-100" disabled>
+                            <i class="fas fa-chart-line"></i><br>
+                            System Logs
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

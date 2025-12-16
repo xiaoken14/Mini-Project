@@ -1,0 +1,222 @@
+@model IEnumerable<HealthcareApp.Models.Appointment>
+@{
+    ViewData["Title"] = "Manage Appointments";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-calendar-alt"></i> Manage Appointments</h2>
+    <a asp-action="Index" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="card shadow">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">All Appointments (@Model.Count())</h6>
+    </div>
+    <div class="card-body">
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover" id="appointmentsTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Patient</th>
+                            <th>Doctor</th>
+                            <th>Date & Time</th>
+                            <th>Reason</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var appointment in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <small class="text-muted">#@appointment.Id</small>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-sm me-2">
+                                            <div class="bg-success rounded-circle d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;">
+                                                <i class="fas fa-user text-white" style="font-size: 0.8rem;"></i>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <strong>@appointment.Patient?.FirstName @appointment.Patient?.LastName</strong>
+                                            <br><small class="text-muted">@appointment.Patient?.Email</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-sm me-2">
+                                            <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 30px; height: 30px;">
+                                                <i class="fas fa-user-md text-white" style="font-size: 0.8rem;"></i>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <strong>@appointment.Doctor?.FirstName @appointment.Doctor?.LastName</strong>
+                                            <br><small class="text-muted">@appointment.Doctor?.Specialization</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <strong>@appointment.AppointmentDate.ToString("MMM dd, yyyy")</strong>
+                                    <br><small class="text-muted">@appointment.AppointmentTime.ToString(@"hh\:mm")</small>
+                                </td>
+                                <td>
+                                    <span title="@appointment.Reason">
+                                        @(appointment.Reason.Length > 30 ? appointment.Reason.Substring(0, 30) + "..." : appointment.Reason)
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-@(appointment.Status == AppointmentStatus.Confirmed ? "success" : 
+                                                          appointment.Status == AppointmentStatus.Pending ? "warning" : 
+                                                          appointment.Status == AppointmentStatus.Completed ? "info" :
+                                                          appointment.Status == AppointmentStatus.Cancelled ? "danger" : "secondary")">
+                                        @appointment.Status
+                                    </span>
+                                </td>
+                                <td>
+                                    <small>@appointment.CreatedAt.ToString("MMM dd, yyyy")</small>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#appointmentModal@(appointment.Id)" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="fas fa-calendar-alt fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No appointments found</h5>
+                <p class="text-muted">Appointments will appear here once patients book them.</p>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Appointment Details Modals -->
+@foreach (var appointment in Model)
+{
+    <div class="modal fade" id="appointmentModal@(appointment.Id)" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-calendar-alt"></i> Appointment Details #@appointment.Id
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-user"></i> Patient Information</h6>
+                            <dl class="row">
+                                <dt class="col-sm-4">Name:</dt>
+                                <dd class="col-sm-8">@appointment.Patient?.FirstName @appointment.Patient?.LastName</dd>
+                                <dt class="col-sm-4">Email:</dt>
+                                <dd class="col-sm-8">@appointment.Patient?.Email</dd>
+                                <dt class="col-sm-4">Phone:</dt>
+                                <dd class="col-sm-8">@appointment.Patient?.PhoneNumber</dd>
+                            </dl>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-user-md"></i> Doctor Information</h6>
+                            <dl class="row">
+                                <dt class="col-sm-4">Name:</dt>
+                                <dd class="col-sm-8">@appointment.Doctor?.FirstName @appointment.Doctor?.LastName</dd>
+                                <dt class="col-sm-4">Specialty:</dt>
+                                <dd class="col-sm-8">@appointment.Doctor?.Specialization</dd>
+                                <dt class="col-sm-4">Email:</dt>
+                                <dd class="col-sm-8">@appointment.Doctor?.Email</dd>
+                            </dl>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-calendar"></i> Appointment Details</h6>
+                            <dl class="row">
+                                <dt class="col-sm-4">Date:</dt>
+                                <dd class="col-sm-8">@appointment.AppointmentDate.ToString("MMMM dd, yyyy")</dd>
+                                <dt class="col-sm-4">Time:</dt>
+                                <dd class="col-sm-8">@appointment.AppointmentTime.ToString(@"hh\:mm")</dd>
+                                <dt class="col-sm-4">Status:</dt>
+                                <dd class="col-sm-8">
+                                    <span class="badge bg-@(appointment.Status == AppointmentStatus.Confirmed ? "success" : 
+                                                          appointment.Status == AppointmentStatus.Pending ? "warning" : 
+                                                          appointment.Status == AppointmentStatus.Completed ? "info" :
+                                                          appointment.Status == AppointmentStatus.Cancelled ? "danger" : "secondary")">
+                                        @appointment.Status
+                                    </span>
+                                </dd>
+                            </dl>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-info-circle"></i> Additional Information</h6>
+                            <dl class="row">
+                                <dt class="col-sm-4">Created:</dt>
+                                <dd class="col-sm-8">@appointment.CreatedAt.ToString("MMM dd, yyyy")</dd>
+                                @if (appointment.UpdatedAt.HasValue)
+                                {
+                                    <dt class="col-sm-4">Updated:</dt>
+                                    <dd class="col-sm-8">@appointment.UpdatedAt.Value.ToString("MMM dd, yyyy")</dd>
+                                }
+                            </dl>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <h6><i class="fas fa-clipboard"></i> Reason for Visit</h6>
+                            <p class="border p-3 bg-light">@appointment.Reason</p>
+                            
+                            @if (!string.IsNullOrEmpty(appointment.Notes))
+                            {
+                                <h6><i class="fas fa-sticky-note"></i> Notes</h6>
+                                <p class="border p-3 bg-light">@appointment.Notes</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#appointmentsTable').DataTable({
+                "pageLength": 10,
+                "order": [[ 3, "desc" ]],
+                "columnDefs": [
+                    { "orderable": false, "targets": 7 }
+                ]
+            });
+        });
+    </script>
+}

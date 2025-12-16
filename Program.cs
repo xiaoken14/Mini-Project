@@ -13,11 +13,11 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
-    // Password settings
+    // Password settings - relaxed for easier admin access
     options.Password.RequireDigit = true;
-    options.Password.RequireLowercase = true;
+    options.Password.RequireLowercase = false;
     options.Password.RequireNonAlphanumeric = false;
-    options.Password.RequireUppercase = true;
+    options.Password.RequireUppercase = false;
     options.Password.RequiredLength = 6;
     
     // User settings
@@ -98,8 +98,8 @@ async Task CreateRoles(RoleManager<IdentityRole> roleManager)
 
 async Task CreateAdminUser(UserManager<ApplicationUser> userManager)
 {
-    string email = "admin@healthcare.com";
-    string password = "Admin@123";
+    string email = "simweikian729@gmail.com";
+    string password = "1234567890";
     
     var adminUser = await userManager.FindByEmailAsync(email);
     if (adminUser == null)
@@ -108,7 +108,11 @@ async Task CreateAdminUser(UserManager<ApplicationUser> userManager)
         {
             UserName = email,
             Email = email,
-            EmailConfirmed = true
+            EmailConfirmed = true,
+            FirstName = "Sim Wei",
+            LastName = "Kian",
+            Role = UserRole.Admin,
+            CreatedAt = DateTime.UtcNow
         };
         
         var result = await userManager.CreateAsync(user, password);
@@ -131,7 +135,13 @@ async Task CreateDoctorUser(UserManager<ApplicationUser> userManager)
         {
             UserName = email,
             Email = email,
-            EmailConfirmed = true
+            EmailConfirmed = true,
+            FirstName = "Dr. John",
+            LastName = "Smith",
+            Role = UserRole.Doctor,
+            Specialization = "General Medicine",
+            LicenseNumber = "MD123456",
+            CreatedAt = DateTime.UtcNow
         };
         
         var result = await userManager.CreateAsync(user, password);
