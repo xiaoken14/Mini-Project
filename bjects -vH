@@ -1,0 +1,67 @@
+[33mcommit f631a12cbd5778f618b0d597113c4bfe0677f6e2[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: wwweijian <simweikian729@gmail.com>
+Date:   Mon Dec 15 13:01:29 2025 +0800
+
+    Save changes before push
+
+ Controllers/AccountController.cs                   | 365 [32m++++[m[31m--------[m
+ ...ashboardControlle.cs => DashboardController.cs} |   0
+ Controllers/HomeController.cs                      |   1 [31m-[m
+ Data/ApplicationDbContext.cs                       |  57 [32m+[m[31m-[m
+ Data/MiniProject.db                                | Bin [31m172032[m -> [32m200704[m bytes
+ Helper.cs                                          | 159 [32m++++++[m
+ .../20251211082356_InitialCreate.Designer.cs       | 615 [31m---------------------[m
+ Migrations/20251211082356_InitialCreate.cs         | 465 [31m----------------[m
+ Migrations/ApplicationDbContextModelSnapshot.cs    | 612 [31m--------------------[m
+ Models/Admin.cs                                    |  18 [32m+[m[31m-[m
+ Models/Appointment.cs                              |  28 [32m+[m[31m-[m
+ Models/Doctor.cs                                   |  22 [32m+[m[31m-[m
+ Models/Notification.cs                             |  15 [32m+[m[31m-[m
+ Models/Patient.cs                                  |  39 [32m+[m[31m-[m
+ Models/Payment.cs                                  |  16 [32m+[m[31m-[m
+ Models/Report.cs                                   |  18 [32m+[m[31m-[m
+ Program.cs                                         |  56 [32m+[m[31m-[m
+ SessionExtensions.cs                               |  17 [32m+[m
+ ViewModels/ForgotPasswordVM.cs                     |  11 [32m+[m
+ ViewModels/RegisterVM.cs                           |   6 [32m+[m[31m-[m
+ ViewModels/ResetPasswordConfirmVM.cs               |  23 [32m+[m
+ ViewModels/VerifyEmailChangeVM.cs                  |   8 [32m+[m
+ ViewModels/VerifyPasswordResetCodeVM.cs            |  14 [32m+[m
+ Views/Account/Register.cshtml                      | 114 [32m+[m[31m---[m
+ Views/Account/RegistrationConfirmation.cshtml      |  21 [32m+[m[31m-[m
+ Views/Account/Verify.cshtml                        |  42 [32m++[m
+ Views/Account/VerifyEmail.cshtml                   |  42 [32m++[m
+ Views/Home/Patient.cshtml                          |   4 [31m-[m
+ Views/Shared/Error.cshtml                          |   6 [32m+[m
+ bin/Debug/net8.0/Mini-Project.dll                  | Bin [31m342016[m -> [32m274432[m bytes
+ bin/Debug/net8.0/Mini-Project.exe                  | Bin [31m151552[m -> [32m150016[m bytes
+ bin/Debug/net8.0/Mini-Project.pdb                  | Bin [31m88536[m -> [32m87892[m bytes
+ .../Mini-Project.staticwebassets.endpoints.json    |   2 [32m+[m[31m-[m
+ .../Mini-Project.staticwebassets.runtime.json      |   2 [32m+[m[31m-[m
+ obj/Debug/net8.0/Mini-Project.AssemblyInfo.cs      |   2 [32m+[m[31m-[m
+ .../net8.0/Mini-Project.AssemblyInfoInputs.cache   |   2 [32m+[m[31m-[m
+ ...oject.GeneratedMSBuildEditorConfig.editorconfig |  46 [32m+[m[31m-[m
+ obj/Debug/net8.0/Mini-Project.assets.cache         | Bin [31m70097[m -> [32m69824[m bytes
+ .../Mini-Project.csproj.AssemblyReference.cache    | Bin [31m13655[m -> [32m13627[m bytes
+ .../Mini-Project.csproj.CoreCompileInputs.cache    |   2 [32m+[m[31m-[m
+ .../Mini-Project.csproj.FileListAbsolute.txt       |  25 [32m+[m
+ obj/Debug/net8.0/Mini-Project.dll                  | Bin [31m342016[m -> [32m274432[m bytes
+ .../net8.0/Mini-Project.genruntimeconfig.cache     |   2 [32m+[m[31m-[m
+ obj/Debug/net8.0/Mini-Project.pdb                  | Bin [31m88536[m -> [32m87892[m bytes
+ obj/Debug/net8.0/Mini-Project.sourcelink.json      |   2 [32m+[m[31m-[m
+ obj/Debug/net8.0/apphost.exe                       | Bin [31m151552[m -> [32m150016[m bytes
+ obj/Debug/net8.0/ref/Mini-Project.dll              | Bin [31m44032[m -> [32m45056[m bytes
+ obj/Debug/net8.0/refint/Mini-Project.dll           | Bin [31m44032[m -> [32m45056[m bytes
+ obj/Debug/net8.0/rjimswa.dswa.cache.json           |   2 [32m+[m[31m-[m
+ obj/Debug/net8.0/rjsmcshtml.dswa.cache.json        |   2 [32m+[m[31m-[m
+ obj/Debug/net8.0/rjsmrazor.dswa.cache.json         |   2 [32m+[m[31m-[m
+ obj/Debug/net8.0/rpswa.dswa.cache.json             |   2 [32m+[m[31m-[m
+ .../net8.0/staticwebassets.build.endpoints.json    |   2 [32m+[m[31m-[m
+ obj/Debug/net8.0/staticwebassets.build.json        |   2 [32m+[m[31m-[m
+ obj/Debug/net8.0/staticwebassets.build.json.cache  |   2 [32m+[m[31m-[m
+ obj/Debug/net8.0/staticwebassets.development.json  |   2 [32m+[m[31m-[m
+ obj/Mini-Project.csproj.nuget.dgspec.json          |  16 [32m+[m[31m-[m
+ obj/Mini-Project.csproj.nuget.g.props              |   8 [32m+[m[31m-[m
+ obj/project.assets.json                            |  14 [32m+[m[31m-[m
+ obj/project.nuget.cache                            | 178 [32m+++[m[31m---[m
+ 60 files changed, 771 insertions(+), 2340 deletions(-)

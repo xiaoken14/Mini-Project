@@ -1,6 +1,327 @@
+@model ErrorViewModel
 @{
-    ViewData["Title"] = "Error";
+    ViewData["Title"] = "Error | HealthCarePro";
 }
 
-<h1 class="text-danger">Error.</h1>
-<h2 class="text-danger">An error occurred while processing your request.</h2>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --error-primary: #d32f2f;
+        --error-secondary: #f44336;
+        --error-light: #ffebee;
+        --info-color: #2196f3;
+        --warning-color: #ff9800;
+    }
+
+    * {
+        font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+    }
+
+    .error-container {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+    }
+
+    .error-card {
+        background: white;
+        border-radius: 20px;
+        padding: 50px 40px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        max-width: 600px;
+        width: 100%;
+        border: 1px solid rgba(211, 47, 47, 0.1);
+        animation: slideUp 0.6s ease;
+    }
+
+    @@keyframes slideUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .error-icon {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--error-primary), var(--error-secondary));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 30px;
+        color: white;
+        font-size: 3rem;
+        animation: pulse 2s infinite;
+        box-shadow: 0 10px 25px rgba(211, 47, 47, 0.3);
+    }
+
+    @@keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+
+    .error-title {
+        font-size: 2.5rem;
+        font-weight: 600;
+        color: var(--error-primary);
+        margin-bottom: 15px;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .error-subtitle {
+        font-size: 1.2rem;
+        color: #666;
+        margin-bottom: 30px;
+        line-height: 1.5;
+    }
+
+    .error-details {
+        background: rgba(211, 47, 47, 0.05);
+        border: 1px solid rgba(211, 47, 47, 0.1);
+        border-radius: 12px;
+        padding: 20px;
+        margin: 30px 0;
+        text-align: left;
+    }
+
+    .error-details h4 {
+        color: var(--error-primary);
+        font-weight: 600;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .error-details p {
+        margin: 10px 0;
+        color: #555;
+        line-height: 1.6;
+    }
+
+    .error-details code {
+        background: rgba(0, 0, 0, 0.1);
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-family: 'Courier New', monospace;
+        color: var(--error-primary);
+    }
+
+    .error-actions {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 30px;
+    }
+
+    .error-btn {
+        padding: 12px 25px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: none;
+        cursor: pointer;
+        font-size: 1rem;
+    }
+
+    .error-btn.primary {
+        background: linear-gradient(135deg, var(--info-color), #42a5f5);
+        color: white;
+        box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+    }
+
+    .error-btn.primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(33, 150, 243, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+
+    .error-btn.secondary {
+        background: rgba(211, 47, 47, 0.1);
+        color: var(--error-primary);
+        border: 1px solid rgba(211, 47, 47, 0.2);
+    }
+
+    .error-btn.secondary:hover {
+        background: var(--error-primary);
+        color: white;
+        transform: translateY(-2px);
+        text-decoration: none;
+    }
+
+    .development-info {
+        background: rgba(255, 152, 0, 0.1);
+        border: 1px solid rgba(255, 152, 0, 0.2);
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 30px;
+        text-align: left;
+    }
+
+    .development-info h4 {
+        color: var(--warning-color);
+        font-weight: 600;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .development-info p {
+        margin: 10px 0;
+        color: #666;
+        line-height: 1.6;
+    }
+
+    .development-info strong {
+        color: var(--warning-color);
+    }
+
+    .healthcare-note {
+        background: rgba(33, 150, 243, 0.1);
+        border: 1px solid rgba(33, 150, 243, 0.2);
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 20px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .healthcare-note i {
+        font-size: 2rem;
+        color: var(--info-color);
+    }
+
+    .healthcare-note div {
+        text-align: left;
+    }
+
+    .healthcare-note h5 {
+        margin: 0 0 8px 0;
+        color: var(--info-color);
+        font-weight: 600;
+    }
+
+    .healthcare-note p {
+        margin: 0;
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    @@media (max-width: 768px) {
+        .error-card {
+            padding: 30px 20px;
+            margin: 20px;
+        }
+
+        .error-title {
+            font-size: 2rem;
+        }
+
+        .error-actions {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .error-btn {
+            width: 100%;
+            justify-content: center;
+            max-width: 250px;
+        }
+    }
+</style>
+
+<div class="error-container">
+    <div class="error-card">
+        <div class="error-icon">
+            <i class="bi bi-exclamation-triangle"></i>
+        </div>
+        
+        <h1 class="error-title">Oops! Something went wrong</h1>
+        <p class="error-subtitle">We encountered an unexpected error while processing your healthcare request.</p>
+
+        @if (Model?.ShowRequestId == true)
+        {
+            <div class="error-details">
+                <h4><i class="bi bi-info-circle"></i> Error Details</h4>
+                <p><strong>Request ID:</strong> <code>@Model.RequestId</code></p>
+                <p>Please provide this Request ID when contacting our support team for faster assistance.</p>
+            </div>
+        }
+
+        <div class="healthcare-note">
+            <i class="bi bi-heart-pulse"></i>
+            <div>
+                <h5>Your Health Data is Safe</h5>
+                <p>This error does not affect the security or integrity of your medical information. All patient data remains protected and secure.</p>
+            </div>
+        </div>
+
+        <div class="error-actions">
+            <a href="@Url.Action("Index", "Home")" class="error-btn primary">
+                <i class="bi bi-house"></i> Return to Home
+            </a>
+            <button onclick="history.back()" class="error-btn secondary">
+                <i class="bi bi-arrow-left"></i> Go Back
+            </button>
+        </div>
+
+        <div class="development-info">
+            <h4><i class="bi bi-tools"></i> Development Mode</h4>
+            <p>
+                Swapping to <strong>Development</strong> environment will display more detailed information about the error that occurred.
+            </p>
+            <p>
+                <strong>The Development environment shouldn't be enabled for deployed applications.</strong>
+                It can result in displaying sensitive information from exceptions to end users.
+                For local debugging, enable the <strong>Development</strong> environment by setting the 
+                <strong>ASPNETCORE_ENVIRONMENT</strong> environment variable to <strong>Development</strong>
+                and restarting the app.
+            </p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add subtle animation to the error card
+            const errorCard = document.querySelector('.error-card');
+            if (errorCard) {
+                setTimeout(() => {
+                    errorCard.style.transform = 'translateY(-5px)';
+                    setTimeout(() => {
+                        errorCard.style.transform = 'translateY(0)';
+                    }, 200);
+                }, 500);
+            }
+
+            // Add click animation to buttons
+            const buttons = document.querySelectorAll('.error-btn');
+            buttons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 150);
+                });
+            });
+        });
+    </script>
+}

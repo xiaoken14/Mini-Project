@@ -3,25 +3,25 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace HealthcareApp.Controllers
 {
-    [Authorize(Roles = "Admin")]
-    public class AdminController : Controller
+    [Authorize(Roles = "Doctor")]
+    public class DoctorController : Controller
     {
         public IActionResult Index()
         {
             return View();
         }
         
-        public IActionResult Dashboard()
+        public IActionResult Schedule()
         {
             return View();
         }
         
-        public IActionResult Users()
+        public IActionResult Patients()
         {
             return View();
         }
         
-        public IActionResult Reports()
+        public IActionResult Appointments()
         {
             return View();
         }

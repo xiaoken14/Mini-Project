@@ -1,0 +1,667 @@
+@model HealthcareApp.Models.LoginViewModel
+@{
+    ViewData["Title"] = "Doctor Login | HealthCarePro";
+}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --doctor-primary: #388e3c;
+        --doctor-secondary: #4caf50;
+        --doctor-light: #e8f5e9;
+        --doctor-dark: #2e7d32;
+        --gradient-start: #0f2027;
+        --gradient-mid: #203a43;
+        --gradient-end: #2c5364;
+        --success-color: #388e3c;
+        --warning-color: #ff9800;
+    }
+
+    * {
+        font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+        background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-mid) 50%, var(--gradient-end) 100%);
+        min-height: 100vh;
+        margin: 0;
+        padding: 20px 0;
+        position: relative;
+        overflow-x: hidden;
+    }
+
+    .container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 20px;
+    }
+
+    body::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(circle at 10% 90%, rgba(56, 142, 60, 0.15) 0%, transparent 40%),
+                    radial-gradient(circle at 90% 10%, rgba(56, 142, 60, 0.1) 0%, transparent 40%),
+                    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" opacity="0.03"><path fill="white" d="M50,10 C70,10 85,25 85,45 C85,65 70,80 50,80 C30,80 15,65 15,45 C15,25 30,10 50,10 Z M50,20 C40,20 32,28 32,38 C32,48 40,56 50,56 C60,56 68,48 68,38 C68,28 60,20 50,20 Z M50,30 C45,30 40,35 40,40 C40,45 45,50 50,50 C55,50 60,45 60,40 C60,35 55,30 50,30 Z"/></svg>');
+        background-size: 80px;
+        z-index: -1;
+    }
+
+    .doctor-login-container {
+        width: 100%;
+        max-width: 450px;
+        z-index: 1;
+        animation: fadeIn 0.8s ease;
+        margin: auto;
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .doctor-login-card {
+        background: rgba(255, 255, 255, 0.97);
+        backdrop-filter: blur(10px);
+        border-radius: 24px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .doctor-login-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.35);
+    }
+
+    .doctor-login-header {
+        padding: 45px 30px 30px;
+        text-align: center;
+        background: linear-gradient(135deg, var(--doctor-primary), var(--doctor-dark));
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .doctor-login-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                    radial-gradient(circle at 70% 70%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+    }
+
+    .doctor-stethoscope {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.15);
+        width: 100px;
+        height: 100px;
+        line-height: 100px;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.25);
+        position: relative;
+        animation: gentleFloat 3s ease-in-out infinite;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        transition: transform 0.3s ease;
+    }
+
+    .doctor-stethoscope:hover {
+        transform: scale(1.05);
+    }
+
+    @@keyframes gentleFloat {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
+    }
+
+    .doctor-title {
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        letter-spacing: 0.5px;
+    }
+
+    .doctor-subtitle {
+        font-size: 0.95rem;
+        opacity: 0.95;
+        font-weight: 300;
+        max-width: 300px;
+        margin: 0 auto;
+        line-height: 1.5;
+    }
+
+    .doctor-login-body {
+        padding: 45px 35px;
+    }
+
+    .doctor-form-group {
+        margin-bottom: 1.8rem;
+        position: relative;
+    }
+
+    .doctor-form-label {
+        display: block;
+        margin-bottom: 10px;
+        font-weight: 500;
+        color: #2d3436;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        letter-spacing: 0.3px;
+    }
+
+    .doctor-form-label i {
+        color: var(--doctor-primary);
+        font-size: 1.1rem;
+    }
+
+    .doctor-form-control {
+        width: 100%;
+        padding: 18px 22px;
+        border: 2px solid #e0e0e0;
+        border-radius: 14px;
+        font-size: 1.05rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: white;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.04);
+        height: 60px;
+        line-height: 1.5;
+    }
+
+    .doctor-form-control:focus {
+        border-color: var(--doctor-primary);
+        box-shadow: 0 0 0 4px rgba(56, 142, 60, 0.15), inset 0 2px 4px rgba(0, 0, 0, 0.04);
+        outline: none;
+        transform: translateY(-1px);
+    }
+
+    .doctor-input-icon {
+        position: absolute;
+        left: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--doctor-primary);
+        font-size: 1.3rem;
+        transition: transform 0.3s ease;
+        pointer-events: none;
+    }
+
+    .doctor-form-control:focus + .doctor-input-icon {
+        transform: scale(1.1);
+    }
+
+    .doctor-password-container {
+        position: relative;
+    }
+
+    .doctor-password-toggle {
+        position: absolute;
+        right: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: transparent;
+        border: none;
+        color: #95a5a6;
+        font-size: 1.3rem;
+        cursor: pointer;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        transition: all 0.3s ease;
+        border-radius: 50%;
+    }
+
+    .doctor-password-toggle:hover {
+        color: var(--doctor-primary);
+        background: rgba(56, 142, 60, 0.1);
+    }
+
+    .doctor-remember-forgot {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .doctor-remember-me {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+    }
+
+    .doctor-remember-me input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        accent-color: var(--doctor-primary);
+        transition: transform 0.2s ease;
+    }
+
+    .doctor-remember-me input[type="checkbox"]:hover {
+        transform: scale(1.1);
+    }
+
+    .doctor-remember-me label {
+        cursor: pointer;
+        font-size: 0.95rem;
+        color: #2d3436;
+        font-weight: 500;
+    }
+
+    .doctor-forgot-link {
+        color: var(--doctor-primary);
+        text-decoration: none;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .doctor-forgot-link:hover {
+        color: var(--doctor-dark);
+        text-decoration: underline;
+        transform: translateY(-1px);
+    }
+
+    .doctor-login-btn {
+        width: 100%;
+        padding: 18px;
+        background: linear-gradient(135deg, var(--doctor-primary), var(--doctor-secondary));
+        color: white;
+        border: none;
+        border-radius: 14px;
+        font-size: 1.15rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        margin-bottom: 2rem;
+        letter-spacing: 0.5px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 6px 20px rgba(56, 142, 60, 0.25);
+    }
+
+    .doctor-login-btn::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        transition: 0.5s;
+    }
+
+    .doctor-login-btn:hover {
+        background: linear-gradient(135deg, var(--doctor-dark), var(--doctor-primary));
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(56, 142, 60, 0.4);
+        letter-spacing: 0.7px;
+    }
+
+    .doctor-login-btn:hover::after {
+        left: 100%;
+    }
+
+    .doctor-login-btn:active {
+        transform: translateY(0);
+        box-shadow: 0 4px 15px rgba(56, 142, 60, 0.3);
+    }
+
+    .doctor-login-footer {
+        text-align: center;
+        padding-top: 25px;
+        border-top: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    .doctor-back-link {
+        color: var(--doctor-primary);
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 24px;
+        border-radius: 10px;
+        background: rgba(56, 142, 60, 0.08);
+        border: 1px solid rgba(56, 142, 60, 0.15);
+    }
+
+    .doctor-back-link:hover {
+        background: var(--doctor-primary);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(56, 142, 60, 0.2);
+    }
+
+    .doctor-professional-note {
+        background: rgba(232, 245, 233, 0.8);
+        border: 1px solid rgba(76, 175, 80, 0.2);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 30px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .doctor-professional-note::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: var(--doctor-primary);
+    }
+
+    .doctor-professional-note p {
+        margin: 0;
+        font-size: 0.9rem;
+        color: var(--doctor-dark);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        line-height: 1.6;
+    }
+
+    .doctor-professional-note i {
+        color: var(--doctor-primary);
+        font-size: 1.1rem;
+    }
+
+    .doctor-validation-summary {
+        background: rgba(232, 245, 233, 0.9);
+        border: 1px solid rgba(76, 175, 80, 0.3);
+        border-radius: 12px;
+        padding: 18px;
+        margin-bottom: 30px;
+        animation: slideDown 0.4s ease;
+        position: relative;
+    }
+
+    .doctor-validation-summary::before {
+        content: '⚠';
+        position: absolute;
+        left: 15px;
+        top: 15px;
+        font-size: 1.2rem;
+        color: var(--doctor-dark);
+    }
+
+    .doctor-validation-summary ul {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 0 30px;
+    }
+
+    .doctor-validation-summary li {
+        color: var(--doctor-dark);
+        font-size: 0.9rem;
+        margin: 8px 0;
+        line-height: 1.5;
+    }
+
+    .doctor-field-validation {
+        display: block;
+        margin-top: 8px;
+        font-size: 0.85rem;
+        color: var(--doctor-dark);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-weight: 500;
+    }
+
+    .doctor-field-validation:before {
+        content: '•';
+        font-weight: bold;
+        color: var(--doctor-primary);
+    }
+
+    @@keyframes slideDown {
+        from { transform: translateY(-20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* Responsive Design */
+    @@media (max-width: 768px) {
+        .container {
+            padding: 10px;
+            min-height: auto;
+        }
+
+        .doctor-login-container {
+            max-width: 100%;
+            margin: 20px auto;
+        }
+
+        .doctor-login-header, .doctor-login-body {
+            padding: 30px 20px;
+        }
+
+        .doctor-stethoscope {
+            width: 85px;
+            height: 85px;
+            line-height: 85px;
+            font-size: 3.2rem;
+        }
+
+        .doctor-title {
+            font-size: 1.6rem;
+        }
+
+        .doctor-remember-forgot {
+            flex-direction: column;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .doctor-back-link {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+<div class="container">
+    <div class="doctor-login-container">
+        <div class="doctor-login-card">
+            <div class="doctor-login-header">
+                <div class="doctor-stethoscope">
+                    <i class="bi bi-heart-pulse-fill"></i>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <span style="font-size: 1.2rem; font-weight: 500; opacity: 0.9;">HealthCare<span style="color: #e8f5e9;">Pro</span></span>
+                </div>
+                <h2 class="doctor-title">Medical Professional Portal</h2>
+                <p class="doctor-subtitle">Secure access to patient care and medical records</p>
+            </div>
+
+            <div class="doctor-login-body">
+                <div class="doctor-professional-note">
+                    <p><i class="bi bi-shield-check"></i>HIPAA compliant & secure patient data access</p>
+                </div>
+
+                <form asp-action="LoginDoctor" method="post">
+                    <div asp-validation-summary="All" class="doctor-validation-summary"></div>
+
+                    <div class="doctor-form-group">
+                        <label asp-for="Email" class="doctor-form-label">
+                            <i class="bi bi-person-badge"></i> Medical ID / Email
+                        </label>
+                        <div class="position-relative">
+                            <input asp-for="Email" class="doctor-form-control" placeholder="Enter your medical email" />
+                        </div>
+                        <span asp-validation-for="Email" class="doctor-field-validation"></span>
+                    </div>
+
+                    <div class="doctor-form-group">
+                        <label asp-for="Password" class="doctor-form-label">
+                            <i class="bi bi-key-fill"></i> Medical Access Code
+                        </label>
+                        <div class="position-relative doctor-password-container">
+                            <input asp-for="Password" type="password" class="doctor-form-control" id="doctorPassword" placeholder="Enter your secure password" />
+                            <button type="button" class="doctor-password-toggle" id="doctorTogglePassword">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                        <span asp-validation-for="Password" class="doctor-field-validation"></span>
+                    </div>
+
+                    <div class="doctor-remember-forgot">
+                        <div class="doctor-remember-me">
+                            <input asp-for="RememberMe" type="checkbox" id="doctorRememberMe" />
+                            <label for="doctorRememberMe">Remember this device</label>
+                        </div>
+                        <a href="#" class="doctor-forgot-link">
+                            <i class="bi bi-question-circle-fill"></i> Forgot credentials?
+                        </a>
+                    </div>
+
+                    <button type="submit" class="doctor-login-btn">
+                        <i class="bi bi-activity"></i> Access Medical Dashboard
+                    </button>
+                </form>
+
+                <div class="doctor-login-footer">
+                    <a asp-controller="Home" asp-action="Index" class="doctor-back-link">
+                        <i class="bi bi-arrow-left-circle"></i> Return to Patient Portal
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Password visibility toggle
+            const doctorToggleButton = document.getElementById('doctorTogglePassword');
+            const doctorPasswordInput = document.getElementById('doctorPassword');
+            
+            if (doctorToggleButton && doctorPasswordInput) {
+                doctorToggleButton.addEventListener('click', function() {
+                    const type = doctorPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                    doctorPasswordInput.setAttribute('type', type);
+                    
+                    // Toggle eye icon
+                    const icon = this.querySelector('i');
+                    if (type === 'text') {
+                        icon.classList.remove('bi-eye');
+                        icon.classList.add('bi-eye-slash');
+                        this.style.background = 'rgba(56, 142, 60, 0.15)';
+                    } else {
+                        icon.classList.remove('bi-eye-slash');
+                        icon.classList.add('bi-eye');
+                        this.style.background = '';
+                    }
+                });
+            }
+
+            // Form interaction effects
+            const doctorInputs = document.querySelectorAll('.doctor-form-control');
+            
+            doctorInputs.forEach(input => {
+                // Clear error on focus
+                input.addEventListener('focus', function() {
+                    this.style.borderColor = '';
+                    const errorSpan = this.parentElement.nextElementSibling;
+                    if (errorSpan && errorSpan.classList.contains('doctor-field-validation')) {
+                        errorSpan.style.opacity = '0.6';
+                    }
+                });
+
+                // Restore error on blur if invalid
+                input.addEventListener('blur', function() {
+                    if (!this.value.trim() && this.hasAttribute('required')) {
+                        this.style.borderColor = 'var(--doctor-dark)';
+                        const errorSpan = this.parentElement.nextElementSibling;
+                        if (errorSpan && errorSpan.classList.contains('doctor-field-validation')) {
+                            errorSpan.style.opacity = '1';
+                        }
+                    }
+                });
+
+                // Add typing effect
+                input.addEventListener('input', function() {
+                    if (this.value.trim()) {
+                        this.style.borderColor = 'var(--doctor-primary)';
+                    }
+                });
+
+                // Check if field has error on page load
+                if (input.classList.contains('input-validation-error')) {
+                    input.style.borderColor = 'var(--doctor-dark)';
+                }
+            });
+
+            // Button hover effects
+            const doctorLoginBtn = document.querySelector('.doctor-login-btn');
+            if (doctorLoginBtn) {
+                doctorLoginBtn.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-3px)';
+                });
+                
+                doctorLoginBtn.addEventListener('mouseleave', function() {
+                    if (!this.matches(':active')) {
+                        this.style.transform = 'translateY(0)';
+                    }
+                });
+            }
+
+            // Back link animation
+            const doctorBackLink = document.querySelector('.doctor-back-link');
+            if (doctorBackLink) {
+                doctorBackLink.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                });
+                
+                doctorBackLink.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            }
+
+            // Add subtle animation to the card on load
+            const doctorCard = document.querySelector('.doctor-login-card');
+            if (doctorCard) {
+                setTimeout(() => {
+                    doctorCard.style.transform = 'translateY(-5px)';
+                    setTimeout(() => {
+                        doctorCard.style.transform = 'translateY(0)';
+                    }, 200);
+                }, 300);
+            }
+        });
+    </script>
+}

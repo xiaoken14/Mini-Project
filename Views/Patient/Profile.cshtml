@@ -1,0 +1,286 @@
+@model PatientProfileViewModel
+@{
+    ViewData["Title"] = "My Profile";
+    Layout = "~/Views/Shared/_PatientLayout.cshtml";
+}
+
+<div class="dashboard-content">
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Profile Form -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 py-4">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-user-edit me-2 text-primary"></i>Personal Information
+                    </h3>
+                    <p class="text-muted mb-0">Update your personal details and contact information</p>
+                </div>
+                
+                <div class="card-body p-4">
+                    <form asp-action="Profile" method="post" class="needs-validation" novalidate>
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <!-- Name Fields -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label asp-for="FirstName" class="form-label fw-semibold">First Name</label>
+                                <input asp-for="FirstName" class="form-control form-control-lg" required />
+                                <span asp-validation-for="FirstName" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="LastName" class="form-label fw-semibold">Last Name</label>
+                                <input asp-for="LastName" class="form-control form-control-lg" required />
+                                <span asp-validation-for="LastName" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Contact Information -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label asp-for="Email" class="form-label fw-semibold">Email Address</label>
+                                <input asp-for="Email" type="email" class="form-control form-control-lg" readonly />
+                                <div class="form-text">
+                                    <i class="fas fa-lock me-1"></i>Email cannot be changed. Contact support if needed.
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="PhoneNumber" class="form-label fw-semibold">Phone Number</label>
+                                <input asp-for="PhoneNumber" type="tel" class="form-control form-control-lg" 
+                                       placeholder="(555) 123-4567" />
+                                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Personal Details -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label asp-for="DateOfBirth" class="form-label fw-semibold">Date of Birth</label>
+                                <input asp-for="DateOfBirth" type="date" class="form-control form-control-lg" 
+                                       max="@DateTime.Today.AddYears(-1).ToString("yyyy-MM-dd")" />
+                                <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="EmergencyContact" class="form-label fw-semibold">Emergency Contact</label>
+                                <input asp-for="EmergencyContact" class="form-control form-control-lg" 
+                                       placeholder="Name and phone number" />
+                                <span asp-validation-for="EmergencyContact" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Address -->
+                        <div class="mb-4">
+                            <label asp-for="Address" class="form-label fw-semibold">Address</label>
+                            <textarea asp-for="Address" class="form-control" rows="3" 
+                                      placeholder="Enter your full address"></textarea>
+                            <span asp-validation-for="Address" class="text-danger"></span>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex gap-3 justify-content-end">
+                            <a asp-action="Dashboard" class="btn btn-outline-secondary btn-lg">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save me-2"></i>Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Profile Summary -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body text-center p-4">
+                    <div class="profile-avatar mb-3">
+                        <i class="fas fa-user-circle fa-5x text-primary"></i>
+                    </div>
+                    <h5 class="mb-1">@Model.FirstName @Model.LastName</h5>
+                    <p class="text-muted mb-3">Patient</p>
+                    <div class="profile-stats">
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <div class="stat-number text-primary fw-bold">@ViewBag.TotalAppointments</div>
+                                <div class="stat-label text-muted small">Total Visits</div>
+                            </div>
+                            <div class="col-6">
+                                <div class="stat-number text-success fw-bold">
+                                    @(Model.DateOfBirth.HasValue ? (DateTime.Today.Year - Model.DateOfBirth.Value.Year) : "N/A")
+                                </div>
+                                <div class="stat-label text-muted small">Age</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account Security -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-shield-alt me-2 text-success"></i>Account Security
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary btn-sm" disabled>
+                            <i class="fas fa-key me-2"></i>Change Password
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" disabled>
+                            <i class="fas fa-mobile-alt me-2"></i>Two-Factor Auth
+                        </button>
+                        <button class="btn btn-outline-info btn-sm" disabled>
+                            <i class="fas fa-download me-2"></i>Download Data
+                        </button>
+                    </div>
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Security features coming soon
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0">
+                    <h6 class="card-title mb-0">
+                        <i class="fas fa-external-link-alt me-2 text-info"></i>Quick Links
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <a asp-action="Appointments" class="list-group-item list-group-item-action border-0 px-0">
+                            <i class="fas fa-calendar-alt me-2 text-primary"></i>My Appointments
+                        </a>
+                        <a asp-action="BookAppointment" class="list-group-item list-group-item-action border-0 px-0">
+                            <i class="fas fa-plus-circle me-2 text-success"></i>Book New Appointment
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action border-0 px-0 disabled">
+                            <i class="fas fa-file-medical me-2 text-info"></i>Medical Records
+                            <span class="badge bg-secondary ms-auto">Soon</span>
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action border-0 px-0 disabled">
+                            <i class="fas fa-pills me-2 text-warning"></i>Prescriptions
+                            <span class="badge bg-secondary ms-auto">Soon</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Form validation
+            $('.needs-validation').on('submit', function(e) {
+                if (!this.checkValidity()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                $(this).addClass('was-validated');
+            });
+
+            // Phone number formatting
+            $('#PhoneNumber').on('input', function() {
+                var value = $(this).val().replace(/\D/g, '');
+                var formattedValue = '';
+                
+                if (value.length > 0) {
+                    if (value.length <= 3) {
+                        formattedValue = '(' + value;
+                    } else if (value.length <= 6) {
+                        formattedValue = '(' + value.substring(0, 3) + ') ' + value.substring(3);
+                    } else {
+                        formattedValue = '(' + value.substring(0, 3) + ') ' + value.substring(3, 6) + '-' + value.substring(6, 10);
+                    }
+                }
+                
+                $(this).val(formattedValue);
+            });
+
+            // Age calculation
+            $('#DateOfBirth').on('change', function() {
+                var birthDate = new Date($(this).val());
+                var today = new Date();
+                var age = today.getFullYear() - birthDate.getFullYear();
+                var monthDiff = today.getMonth() - birthDate.getMonth();
+                
+                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                    age--;
+                }
+                
+                // Update age display if needed
+                console.log('Age calculated:', age);
+            });
+        });
+    </script>
+}
+
+<style>
+.profile-avatar {
+    margin-bottom: 1rem;
+}
+
+.profile-stats {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+}
+
+.stat-number {
+    font-size: 1.5rem;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-control[readonly] {
+    background-color: #f8f9fa;
+    opacity: 1;
+}
+
+.list-group-item {
+    transition: background-color 0.15s ease-in-out;
+}
+
+.list-group-item:hover:not(.disabled) {
+    background-color: #f8f9fa;
+}
+
+.card {
+    border-radius: 12px;
+}
+
+.form-control, .form-select {
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.btn-lg {
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+.was-validated .form-control:invalid {
+    border-color: #dc3545;
+}
+
+.was-validated .form-control:valid {
+    border-color: #28a745;
+}
+</style>

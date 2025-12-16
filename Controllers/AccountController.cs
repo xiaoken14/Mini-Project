@@ -1,143 +1,307 @@
 using Microsoft.AspNetCore.Mvc;
-using Mini_Project.Data;
-using Mini_Project.Models;
-using Mini_Project.ViewModels;
-using Microsoft.EntityFrameworkCore;
-using System.Net.Mail;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
+using HealthcareApp.Models;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using System;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
-namespace Mini_Project.Controllers;
-
-public class AccountController(ApplicationDbContext db, Helper hp) : Controller
+namespace HealthcareApp.Controllers
 {
-    [HttpGet]
-    public IActionResult Login() => View();
-
-    [HttpPost]
-    public async Task<IActionResult> Login(LoginVM vm, string? returnURL)
+    public class AccountController : Controller
     {
-        var admin = await db.Admins.FirstOrDefaultAsync(a => a.Email == vm.Email);
-        if (admin != null)
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
+
+        public AccountController(UserManager<ApplicationUser> userManager,
+            SignInManager<ApplicationUser> signInManager,
+            RoleManager<IdentityRole> roleManager)
         {
-            if (hp.VerifyPassword(admin.Password, vm.Password))
+            _userManager = userManager;
+            _signInManager = signInManager;
+            _roleManager = roleManager;
+        }
+
+        // GET: /Account/Login
+        [HttpGet]
+        public IActionResult Login(string? returnUrl = null)
+        {
+            ViewData["ReturnUrl"] = returnUrl;
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)
+        {
+            ViewData["ReturnUrl"] = returnUrl;
+            if (ModelState.IsValid)
             {
-                await hp.SignIn(admin.Email, "Admin", vm.RememberMe);
-                return RedirectToAction("Dashboard", "Admin");
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                if (user != null && user.UserName != null)
+                {
+                    var result = await _signInManager.PasswordSignInAsync(user.UserName, model.Password, model.RememberMe, lockoutOnFailure: false);
+                    if (result.Succeeded)
+                    {
+                        // Get user roles
+                        var roles = await _userManager.GetRolesAsync(user);
+
+                        // Redirect based on role
+                        if (roles.Contains("Admin"))
+                        {
+                            return RedirectToAction("Index", "Admin");
+                        }
+                        else if (roles.Contains("Doctor"))
+                        {
+                            return RedirectToAction("Index", "Doctor");
+                        }
+                        else if (roles.Contains("Patient"))
+                        {
+                            return RedirectToAction("Dashboard", "Patient");
+                        }
+                        else
+                        {
+                            // Default redirect to home page
+                            return LocalRedirect(returnUrl ?? Url.Content("~/"));
+                        }
+                    }
+                }
+                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
             }
+            return View(model);
         }
 
-        var doctor = await db.Doctors.FirstOrDefaultAsync(d => d.Email == vm.Email);
-        if (doctor != null)
+        // GET: /Account/LoginAdmin
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult LoginAdmin(string? returnUrl = null)
         {
-            if (hp.VerifyPassword(doctor.Password, vm.Password))
+            ViewData["ReturnUrl"] = returnUrl;
+            ViewBag.IsAdminLogin = true;
+            return View("LoginAdmin");
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> LoginAdmin(LoginViewModel model, string? returnUrl = null)
+        {
+            ViewData["ReturnUrl"] = returnUrl;
+            if (ModelState.IsValid)
             {
-                await hp.SignIn(doctor.Email, "Doctor", vm.RememberMe);
-                return RedirectToAction("Index", "Doctor");
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                if (user != null && user.UserName != null)
+                {
+                    // Check if user is an admin
+                    var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
+                    if (isAdmin)
+                    {
+                        var result = await _signInManager.PasswordSignInAsync(user.UserName, model.Password, model.RememberMe, lockoutOnFailure: false);
+                        if (result.Succeeded)
+                        {
+                            // Admin login successful
+                            return LocalRedirect(returnUrl ?? Url.Action("Index", "Admin") ?? "/Admin");
+                        }
+                    }
+                    else
+                    {
+                        ModelState.AddModelError(string.Empty, "You are not authorized to access the admin panel.");
+                        return View("LoginAdmin", model);
+                    }
+                }
+                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
             }
+            return View("LoginAdmin", model);
         }
 
-        var patient = await db.Patients.FirstOrDefaultAsync(p => p.Email == vm.Email);
-        if (patient != null)
+        // GET: /Account/LoginDoctor
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult LoginDoctor(string? returnUrl = null)
         {
-            if (!patient.EmailConfirmed)
+            ViewData["ReturnUrl"] = returnUrl;
+            ViewBag.IsDoctorLogin = true;
+            return View("LoginDoctor");
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> LoginDoctor(LoginViewModel model, string? returnUrl = null)
+        {
+            ViewData["ReturnUrl"] = returnUrl;
+            if (ModelState.IsValid)
             {
-                ModelState.AddModelError("", "Email not confirmed. Please check your email.");
-                return View(vm);
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                if (user != null && user.UserName != null)
+                {
+                    // Check if user is a doctor
+                    var isDoctor = await _userManager.IsInRoleAsync(user, "Doctor");
+                    if (isDoctor)
+                    {
+                        var result = await _signInManager.PasswordSignInAsync(user.UserName, model.Password, model.RememberMe, lockoutOnFailure: false);
+                        if (result.Succeeded)
+                        {
+                            // Doctor login successful
+                            return LocalRedirect(returnUrl ?? Url.Action("Index", "Doctor") ?? "/Doctor");
+                        }
+                    }
+                    else
+                    {
+                        ModelState.AddModelError(string.Empty, "You are not registered as a doctor.");
+                        return View("LoginDoctor", model);
+                    }
+                }
+                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
             }
+            return View("LoginDoctor", model);
+        }
 
-            if (hp.VerifyPassword(patient.Password, vm.Password))
+        // GET: /Account/LoginPatient
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult LoginPatient(string? returnUrl = null)
+        {
+            ViewData["ReturnUrl"] = returnUrl;
+            return View("LoginPatient");
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> LoginPatient(LoginViewModel model, string? returnUrl = null)
+        {
+            ViewData["ReturnUrl"] = returnUrl;
+            if (ModelState.IsValid)
             {
-                await hp.SignIn(patient.Email, "Patient", vm.RememberMe);
-                return RedirectToAction("Index", "Patient");
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                if (user != null && user.UserName != null)
+                {
+                    // Check if user is a patient
+                    var isPatient = await _userManager.IsInRoleAsync(user, "Patient");
+                    if (isPatient)
+                    {
+                        var result = await _signInManager.PasswordSignInAsync(user.UserName,
+                            model.Password,
+                            model.RememberMe,
+                            lockoutOnFailure: false);
+                        if (result.Succeeded)
+                        {
+                            // Patient login successful
+                            return LocalRedirect(returnUrl ?? Url.Action("Dashboard", "Patient") ?? "/Patient");
+                        }
+                    }
+                    else
+                    {
+                        ModelState.AddModelError(string.Empty, "You are not registered as a patient.");
+                        return View("LoginPatient", model);
+                    }
+                }
+                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
             }
+            return View("LoginPatient", model);
         }
 
-        ModelState.AddModelError("", "Invalid login attempt.");
-        return View(vm);
+        // GET: /Account/Register
+        [HttpGet]
+        public IActionResult Register()
+        {
+            // Create role list for view
+            ViewBag.Roles = new SelectList(Enum.GetValues(typeof(UserRole)));
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Register(RegisterViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = new ApplicationUser 
+                { 
+                    UserName = model.Email, 
+                    Email = model.Email,
+                    FirstName = model.FirstName,
+                    LastName = model.LastName,
+                };
+
+                // Set role-specific properties
+                switch (model.Role)
+                {
+                    case UserRole.Doctor:
+                        user.Specialization = model.Specialization;
+                        user.LicenseNumber = model.LicenseNumber;
+                        user.PhoneNumber = model.EmergencyContact;
+                        break;
+                    case UserRole.Patient:
+                        user.DateOfBirth = model.DateOfBirth;
+                        user.Address = model.Address;
+                        user.EmergencyContact = model.EmergencyContact;
+                        user.PhoneNumber = model.EmergencyContact;
+                        break;
+                    case UserRole.Admin:
+                        // Admin may not need these properties
+                        break;
+                }
+
+                var result = await _userManager.CreateAsync(user, model.Password);
+                if (result.Succeeded)
+                {
+                    // Assign role based on selection
+                    string roleName = model.Role.ToString();
+                    await _userManager.AddToRoleAsync(user, roleName);
+
+                    // Automatically sign in
+                    await _signInManager.SignInAsync(user, isPersistent: false);
+
+                    // Redirect to different pages based on role
+                    return roleName switch
+                    {
+                        "Admin" => RedirectToAction("Index", "Admin"),
+                        "Doctor" => RedirectToAction("Index", "Doctor"),
+                        "Patient" => RedirectToAction("Dashboard", "Patient"),
+                        _ => RedirectToAction("Index", "Home")
+                    };
+                }
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+            }
+
+            // Reload role list
+            ViewBag.Roles = new SelectList(Enum.GetValues(typeof(UserRole)));
+            return View(model);
+        }
+
+        // POST: /Account/Logout
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
+            return RedirectToAction("Index", "Home");
+        }
+
+        // GET: /Account/AccessDenied
+        [HttpGet]
+        public IActionResult AccessDenied()
+        {
+            return View();
+        }
+
+        // GET: /Account/RedirectToRoleLogin
+        [HttpGet]
+        public IActionResult RedirectToRoleLogin(string role)
+        {
+            return role?.ToLower() switch
+            {
+                "admin" => RedirectToAction("LoginAdmin"),
+                "doctor" => RedirectToAction("LoginDoctor"),
+                "patient" => RedirectToAction("LoginPatient"),
+                _ => RedirectToAction("Login")
+            };
+        }
     }
-
-    public async Task<IActionResult> Logout()
-    {
-        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-        return RedirectToAction("Login", "Account");
-    }
-
-    [HttpGet]
-    public IActionResult Register() => View();
-
-    [HttpPost]
-    public async Task<IActionResult> Register(RegisterVM vm)
-    {
-        if (vm.Email != null && (await db.Patients.AnyAsync(p => p.Email == vm.Email) || await db.Doctors.AnyAsync(d => d.Email == vm.Email) || await db.Admins.AnyAsync(a => a.Email == vm.Email)))
-        {
-            ModelState.AddModelError(nameof(vm.Email), "This email address is already registered.");
-        }
-
-        if (!ModelState.IsValid)
-        {
-            return View(vm);
-        }
-
-        var patient = new Patient
-        {
-            Full_Name = vm.Name ?? "",
-            Email = vm.Email!,
-            Password = hp.HashPassword(vm.Password!),
-            Contact_No = vm.PhoneNumber ?? "",
-            EmailConfirmationToken = Guid.NewGuid().ToString(),
-            EmailConfirmed = false,
-
-        };
-
-        db.Patients.Add(patient);
-        await db.SaveChangesAsync();
-
-        var confirmationLink = Url.Action("ConfirmEmail", "Account", new { email = patient.Email, token = patient.EmailConfirmationToken }, Request.Scheme);
-        
-        try 
-        {
-            var mail = new MailMessage();
-            mail.To.Add(patient.Email);
-            mail.Subject = "Confirm your email";
-            mail.Body = $"Please confirm your account by clicking this link: {confirmationLink}";
-            hp.SendEmail(mail);
-        }
-        catch
-        {
-            // Log error
-        }
-
-        return RedirectToAction("RegistrationConfirmation", "Account");
-    }
-
-    [HttpGet]
-    public async Task<IActionResult> ConfirmEmail(string email, string token)
-    {
-        var patient = await db.Patients.FirstOrDefaultAsync(p => p.Email == email && p.EmailConfirmationToken == token);
-        if (patient != null)
-        {
-            patient.EmailConfirmed = true;
-            await db.SaveChangesAsync();
-            return RedirectToAction("EmailConfirmed");
-        }
-
-        return RedirectToAction("Error");
-    }
-
-    [HttpGet]
-    public IActionResult EmailConfirmed() => View();
-
-    [HttpGet]
-    public IActionResult RegistrationConfirmation() => View();
-
-    [HttpGet]
-    public IActionResult DoctorLogin() => View();
-
-    [HttpGet]
-    public IActionResult AdminLogin() => View();
-
-    public IActionResult AccessDenied() => View();
-
-    public IActionResult Error() => View();
 }

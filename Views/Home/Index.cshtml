@@ -1,23 +1,777 @@
 @{
-    Layout = "_Layout";
-    ViewData["Title"] = "Login";
+    ViewData["Title"] = "Home Page";
 }
 
-<div class="login-container">
-    <h2>Login</h2>
-    @if (ViewData["Error"] != null)
-    {
-        <div class="error-message">@ViewData["Error"]</div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --primary-blue: #2a6ebb;
+        --light-blue: #e3f2fd;
+        --patient-color: #4a6fa5;
+        --admin-color: #d32f2f;
+        --doctor-color: #388e3c;
+        --gradient-start: #1a2980;
+        --gradient-end: #26d0ce;
+        --success-color: #388e3c;
+        --warning-color: #f57c00;
     }
-    <form asp-controller="Home" asp-action="Login" method="post">
-        <div class="form-group">
-            <label for="username">Username</label>
-            <input type="text" id="username" name="username" class="form-control" />
+
+    * {
+        font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+        min-height: 100vh;
+        margin: 0;
+    }
+
+    .hero-section {
+        background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+        color: white;
+        padding: 80px 20px;
+        border-radius: 0 0 40px 40px;
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 60px;
+    }
+
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 200"><path fill="rgba(255,255,255,0.1)" d="M0,100 C150,200 350,0 500,100 C650,200 850,0 1000,100 L1000,200 L0,200 Z"/></svg>');
+        background-size: cover;
+        background-position: bottom;
+        opacity: 0.1;
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 1;
+        max-width: 800px;
+        margin: 0 auto;
+        text-align: center;
+    }
+
+    .hero-title {
+        font-size: 3.5rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+        line-height: 1.2;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .hero-subtitle {
+        font-size: 1.3rem;
+        font-weight: 300;
+        margin-bottom: 40px;
+        opacity: 0.9;
+        line-height: 1.6;
+    }
+
+    .hero-actions {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        margin-top: 40px;
+    }
+
+    .btn-hero {
+        padding: 16px 40px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 50px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+    }
+
+    .btn-primary-lg {
+        background: linear-gradient(135deg, var(--primary-blue), #3a86ff);
+        color: white;
+        box-shadow: 0 8px 20px rgba(42, 110, 187, 0.3);
+        border: none;
+        position: relative;
+        overflow: hidden;
+        z-index: 1;
+    }
+
+    .btn-primary-lg::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: 0.5s;
+        z-index: -1;
+    }
+
+    .btn-primary-lg:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 30px rgba(42, 110, 187, 0.4);
+        color: white;
+        background: linear-gradient(135deg, #1a56a5, var(--primary-blue));
+    }
+
+    .btn-primary-lg:hover::before {
+        left: 100%;
+    }
+
+    .feature-card.patient .btn-primary-lg {
+        background: linear-gradient(135deg, var(--patient-color), #5c7cfa);
+        box-shadow: 0 8px 20px rgba(74, 111, 165, 0.3);
+    }
+
+    .feature-card.patient .btn-primary-lg:hover {
+        background: linear-gradient(135deg, #364fc7, var(--patient-color));
+        box-shadow: 0 12px 30px rgba(74, 111, 165, 0.4);
+    }
+
+    .feature-card.doctor .btn-primary-lg {
+        background: linear-gradient(135deg, var(--doctor-color), #4caf50);
+        box-shadow: 0 8px 20px rgba(56, 142, 60, 0.3);
+    }
+
+    .feature-card.doctor .btn-primary-lg:hover {
+        background: linear-gradient(135deg, #2e7d32, var(--doctor-color));
+        box-shadow: 0 12px 30px rgba(56, 142, 60, 0.4);
+    }
+
+    .feature-card.admin .btn-primary-lg {
+        background: linear-gradient(135deg, var(--admin-color), #f44336);
+        box-shadow: 0 8px 20px rgba(211, 47, 47, 0.3);
+    }
+
+    .feature-card.admin .btn-primary-lg:hover {
+        background: linear-gradient(135deg, #b71c1c, var(--admin-color));
+        box-shadow: 0 12px 30px rgba(211, 47, 47, 0.4);
+    }
+
+    .btn-outline-light-lg {
+        background: transparent;
+        color: white;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        backdrop-filter: blur(10px);
+    }
+
+    .btn-outline-light-lg:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: white;
+        color: white;
+        transform: translateY(-3px);
+    }
+
+    /* Features Section */
+    .features-section {
+        padding: 60px 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .section-title {
+        text-align: center;
+        font-size: 2.5rem;
+        font-weight: 600;
+        color: var(--gradient-start);
+        margin-bottom: 50px;
+        position: relative;
+    }
+
+    .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100px;
+        height: 4px;
+        background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+        border-radius: 2px;
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 40px;
+        margin-top: 50px;
+        align-items: stretch;
+    }
+
+    .feature-card {
+        background: white;
+        border-radius: 20px;
+        padding: 40px 30px 50px;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 400px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .feature-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        border-radius: 20px 20px 0 0;
+    }
+
+    .feature-card.patient::before {
+        background: linear-gradient(to right, var(--patient-color), #5c7cfa);
+    }
+
+    .feature-card.doctor::before {
+        background: linear-gradient(to right, var(--doctor-color), #4caf50);
+    }
+
+    .feature-card.admin::before {
+        background: linear-gradient(to right, var(--admin-color), #f44336);
+    }
+
+    .feature-content {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .feature-action {
+        margin-top: auto;
+        padding-top: 20px;
+    }
+
+    .feature-icon {
+        font-size: 3rem;
+        margin-bottom: 20px;
+        display: inline-block;
+    }
+
+    .feature-card.patient .feature-icon {
+        color: var(--patient-color);
+    }
+
+    .feature-card.doctor .feature-icon {
+        color: var(--doctor-color);
+    }
+
+    .feature-card.admin .feature-icon {
+        color: var(--admin-color);
+    }
+
+    .feature-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+        color: #333;
+    }
+
+    .feature-description {
+        color: #666;
+        line-height: 1.6;
+        font-size: 0.95rem;
+    }
+
+    /* User Dashboard */
+    .dashboard-section {
+        padding: 60px 20px;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .welcome-card {
+        background: linear-gradient(135deg, white, #f8f9ff);
+        border-radius: 25px;
+        padding: 50px;
+        text-align: center;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .welcome-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        background: linear-gradient(to right, var(--patient-color), var(--doctor-color), var(--admin-color));
+    }
+
+    .welcome-title {
+        font-size: 2.2rem;
+        font-weight: 600;
+        color: var(--gradient-start);
+        margin-bottom: 20px;
+    }
+
+    .welcome-text {
+        font-size: 1.1rem;
+        color: #555;
+        margin-bottom: 30px;
+        line-height: 1.6;
+    }
+
+    .user-info {
+        background: rgba(255, 255, 255, 0.5);
+        border-radius: 15px;
+        padding: 25px;
+        margin: 30px auto;
+        max-width: 500px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .user-info-item {
+        margin: 15px 0;
+        font-size: 1.1rem;
+    }
+
+    .user-info-label {
+        font-weight: 500;
+        color: #666;
+        margin-right: 10px;
+    }
+
+    .user-info-value {
+        font-weight: 600;
+        color: var(--primary-blue);
+    }
+
+    .role-badge {
+        display: inline-block;
+        padding: 8px 20px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-left: 10px;
+    }
+
+    .role-patient {
+        background: rgba(74, 111, 165, 0.1);
+        color: var(--patient-color);
+    }
+
+    .role-doctor {
+        background: rgba(56, 142, 60, 0.1);
+        color: var(--doctor-color);
+    }
+
+    .role-admin {
+        background: rgba(211, 47, 47, 0.1);
+        color: var(--admin-color);
+    }
+
+    .quick-actions {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 30px;
+        flex-wrap: wrap;
+    }
+
+    .action-btn {
+        padding: 12px 25px;
+        border-radius: 50px;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: none;
+        cursor: pointer;
+    }
+
+    .action-btn-primary {
+        background: var(--primary-blue);
+        color: white;
+    }
+
+    .action-btn-primary:hover {
+        background: #1a56a5;
+        transform: translateY(-2px);
+        color: white;
+    }
+
+    .action-btn-outline {
+        background: transparent;
+        color: var(--primary-blue);
+        border: 2px solid var(--primary-blue);
+    }
+
+    .action-btn-outline:hover {
+        background: var(--primary-blue);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    /* Footer */
+    .footer {
+        background: var(--gradient-start);
+        color: white;
+        padding: 40px 20px;
+        text-align: center;
+        margin-top: 60px;
+        border-radius: 40px 40px 0 0;
+    }
+
+    .footer-content {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .footer-logo {
+        font-size: 1.8rem;
+        font-weight: 600;
+        margin-bottom: 20px;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .footer-description {
+        opacity: 0.8;
+        line-height: 1.6;
+        margin-bottom: 30px;
+    }
+
+    .footer-links {
+        display: flex;
+        gap: 30px;
+        justify-content: center;
+        margin-bottom: 30px;
+    }
+
+    .footer-link {
+        color: white;
+        text-decoration: none;
+        opacity: 0.8;
+        transition: opacity 0.3s ease;
+    }
+
+    .footer-link:hover {
+        opacity: 1;
+    }
+
+    .copyright {
+        opacity: 0.6;
+        font-size: 0.9rem;
+    }
+
+    /* Responsive Design */
+    @@media (max-width: 768px) {
+        .hero-title {
+            font-size: 2.5rem;
+        }
+
+        .hero-subtitle {
+            font-size: 1.1rem;
+        }
+
+        .hero-actions {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .btn-hero {
+            width: 100%;
+            max-width: 300px;
+            justify-content: center;
+        }
+
+        .features-grid {
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        .feature-card {
+            min-height: 350px;
+            padding: 30px 25px 40px;
+        }
+
+        .welcome-card {
+            padding: 30px 20px;
+        }
+
+        .quick-actions {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .action-btn {
+            width: 100%;
+            max-width: 250px;
+            justify-content: center;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .hero-title {
+            font-size: 2rem;
+        }
+
+        .section-title {
+            font-size: 2rem;
+        }
+
+        .feature-card {
+            padding: 30px 20px;
+        }
+    }
+</style>
+
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="hero-content">
+        <h1 class="hero-title">
+            <i class="bi bi-heart-pulse-fill"></i> HealthCarePro
+        </h1>
+        <div style="font-size: 1.5rem; margin-bottom: 20px; opacity: 0.9;">
+            Healthcare Management System
         </div>
-        <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" class="form-control" />
-        </div>
-        <button type="submit" class="btn btn-primary">Sign In</button>
-    </form>
+        <p class="hero-subtitle">
+            A comprehensive platform connecting patients, doctors, and administrators for seamless healthcare
+            management.
+            Book appointments, manage schedules, and provide quality care in one integrated system.
+        </p>
+    </div>
 </div>
+
+@if (User.Identity?.IsAuthenticated != true)
+{
+    <!-- Features Section -->
+    <div class="features-section">
+        <h2 class="section-title">Our Platform Features</h2>
+        <div class="features-grid">
+            <div class="feature-card patient">
+                <div class="feature-content">
+                    <div class="feature-icon">
+                        <i class="bi bi-person-heart"></i>
+                    </div>
+                    <h3 class="feature-title">For Patients</h3>
+                    <p class="feature-description">
+                        Easily book appointments, access medical records, and communicate with your healthcare providers.
+                        Manage your health journey with our intuitive patient portal.
+                    </p>
+                </div>
+                <div class="feature-action">
+                    <a asp-controller="Account" asp-action="LoginPatient" class="btn-hero btn-primary-lg">
+                        <i class="bi bi-box-arrow-in-right"></i> Patient Login
+                    </a>
+                </div>
+            </div>
+
+            <div class="feature-card doctor">
+                <div class="feature-content">
+                    <div class="feature-icon">
+                        <i class="bi bi-heart-pulse"></i>
+                    </div>
+                    <h3 class="feature-title">For Doctors</h3>
+                    <p class="feature-description">
+                        Manage appointments, access patient histories, and streamline consultations.
+                        Focus on providing quality care while we handle the scheduling.
+                    </p>
+                </div>
+                <div class="feature-action">
+                    <a asp-controller="Account" asp-action="LoginDoctor" class="btn-hero btn-primary-lg">
+                        <i class="bi bi-box-arrow-in-right"></i> Doctor Login
+                    </a>
+                </div>
+            </div>
+
+            <div class="feature-card admin">
+                <div class="feature-content">
+                    <div class="feature-icon">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <h3 class="feature-title">For Administrators</h3>
+                    <p class="feature-description">
+                        Comprehensive system management, user administration, and detailed reporting.
+                        Keep your healthcare facility running smoothly and efficiently.
+                    </p>
+                </div>
+                <div class="feature-action">
+                    <a asp-controller="Account" asp-action="LoginAdmin" class="btn-hero btn-primary-lg">
+                        <i class="bi bi-box-arrow-in-right"></i> Admin Login
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <!-- User Dashboard -->
+    <div class="dashboard-section">
+        <div class="welcome-card">
+            <h2 class="welcome-title">Welcome back, @User.Identity?.Name!</h2>
+            <p class="welcome-text">
+                You're now logged into the Healthcare Management System.
+                Access all your features and manage your healthcare journey with ease.
+            </p>
+
+            <div class="user-info">
+                <div class="user-info-item">
+                    <span class="user-info-label">Username:</span>
+                    <span class="user-info-value">@User.Identity?.Name</span>
+                </div>
+                @if (User.IsInRole("Patient") || User.IsInRole("Doctor") || User.IsInRole("Admin"))
+                {
+                    <div class="user-info-item">
+                        <span class="user-info-label">Role:</span>
+                        <span class="user-info-value">
+                            @if (User.IsInRole("Patient"))
+                            {
+                                <text>Patient</text>
+                                <span class="role-badge role-patient">Patient</span>
+                            }
+                            else if (User.IsInRole("Doctor"))
+                            {
+                                <text>Doctor</text>
+                                <span class="role-badge role-doctor">Doctor</span>
+                            }
+                            else if (User.IsInRole("Admin"))
+                            {
+                                <text>Admin</text>
+                                <span class="role-badge role-admin">Admin</span>
+                            }
+                        </span>
+                    </div>
+                }
+            </div>
+
+            <div class="quick-actions">
+                @if (User.IsInRole("Patient"))
+                {
+                    <a asp-controller="Patient" asp-action="Appointments" class="action-btn action-btn-primary">
+                        <i class="bi bi-calendar-plus"></i> My Appointments
+                    </a>
+                    <a asp-controller="Patient" asp-action="MedicalRecords" class="action-btn action-btn-outline">
+                        <i class="bi bi-file-medical"></i> Medical Records
+                    </a>
+                }
+                else if (User.IsInRole("Doctor"))
+                {
+                    <a asp-controller="Doctor" asp-action="Schedule" class="action-btn action-btn-primary">
+                        <i class="bi bi-calendar-week"></i> View Schedule
+                    </a>
+                    <a asp-controller="Doctor" asp-action="Patients" class="action-btn action-btn-outline">
+                        <i class="bi bi-people"></i> My Patients
+                    </a>
+                }
+                else if (User.IsInRole("Admin"))
+                {
+                    <a asp-controller="Admin" asp-action="Dashboard" class="action-btn action-btn-primary">
+                        <i class="bi bi-speedometer2"></i> Dashboard
+                    </a>
+                    <a asp-controller="Admin" asp-action="Users" class="action-btn action-btn-outline">
+                        <i class="bi bi-person-lines-fill"></i> Manage Users
+                    </a>
+                }
+
+                <form asp-controller="Account" asp-action="Logout" method="post" style="display: inline;">
+                    <button type="submit" class="action-btn action-btn-outline">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Footer -->
+<div class="footer">
+    <div class="footer-content">
+        <div class="footer-logo">
+            <i class="bi bi-heart-pulse-fill"></i> HealthCarePro
+        </div>
+        <p class="footer-description">
+            Empowering healthcare providers and patients with innovative technology solutions for better health
+            outcomes.
+        </p>
+        <div class="footer-links">
+            <a href="#" class="footer-link">Privacy Policy</a>
+            <a href="#" class="footer-link">Terms of Service</a>
+            <a href="#" class="footer-link">Contact Us</a>
+            <a href="#" class="footer-link">Support</a>
+        </div>
+        <p class="copyright">
+            © @DateTime.Now.Year Healthcare Management System. All rights reserved.
+        </p>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Add animation to feature cards
+            const featureCards = document.querySelectorAll('.feature-card');
+            featureCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+
+                setTimeout(() => {
+                    card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 200);
+            });
+
+            // Add hover effects to buttons
+            const buttons = document.querySelectorAll('.btn-hero, .action-btn');
+            buttons.forEach(button => {
+                button.addEventListener('mouseenter', function () {
+                    this.style.transform = 'translateY(-3px)';
+                });
+
+                button.addEventListener('mouseleave', function () {
+                    this.style.transform = 'translateY(0)';
+                });
+
+                // Add click effect
+                button.addEventListener('mousedown', function () {
+                    this.style.transform = 'translateY(-1px)';
+                });
+
+                button.addEventListener('mouseup', function () {
+                    this.style.transform = 'translateY(-3px)';
+                });
+            });
+
+            // Parallax effect for hero section
+            window.addEventListener('scroll', function () {
+                const scrolled = window.pageYOffset;
+                const hero = document.querySelector('.hero-section');
+                if (hero) {
+                    hero.style.transform = 'translateY(' + (scrolled * 0.05) + 'px)';
+                }
+            });
+        });
+    </script>
+}

@@ -1,0 +1,284 @@
+@model PatientDashboardViewModel
+@{
+    ViewData["Title"] = "Patient Dashboard";
+    Layout = "~/Views/Shared/_PatientLayout.cshtml";
+}
+
+<div class="dashboard-content">
+    <!-- Header Section -->
+    <div class="dashboard-header mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="dashboard-title">Welcome back, @Model.Patient.FirstName!</h1>
+                <p class="dashboard-subtitle text-muted">Here's what's happening with your healthcare today</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a asp-action="BookAppointment" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plus me-2"></i>Book New Appointment
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card stats-card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stats-icon bg-primary bg-gradient">
+                            <i class="fas fa-calendar-check text-white"></i>
+                        </div>
+                        <div class="ms-3">
+                            <div class="stats-number">@Model.UpcomingAppointments.Count</div>
+                            <div class="stats-label text-muted">Upcoming</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card stats-card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stats-icon bg-warning bg-gradient">
+                            <i class="fas fa-clock text-white"></i>
+                        </div>
+                        <div class="ms-3">
+                            <div class="stats-number">@Model.PendingAppointments</div>
+                            <div class="stats-label text-muted">Pending</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card stats-card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stats-icon bg-success bg-gradient">
+                            <i class="fas fa-user-md text-white"></i>
+                        </div>
+                        <div class="ms-3">
+                            <div class="stats-number">@Model.TotalAppointments</div>
+                            <div class="stats-label text-muted">Total Visits</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-3">
+            <div class="card stats-card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stats-icon bg-info bg-gradient">
+                            <i class="fas fa-heartbeat text-white"></i>
+                        </div>
+                        <div class="ms-3">
+                            <div class="stats-number">Good</div>
+                            <div class="stats-label text-muted">Health Status</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Row -->
+    <div class="row">
+        <!-- Upcoming Appointments -->
+        <div class="col-lg-8 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-calendar-alt me-2 text-primary"></i>Upcoming Appointments
+                        </h5>
+                        <a asp-action="Appointments" class="btn btn-outline-primary btn-sm">View All</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (Model.UpcomingAppointments.Any())
+                    {
+                        <div class="appointment-list">
+                            @foreach (var appointment in Model.UpcomingAppointments)
+                            {
+                                <div class="appointment-item d-flex align-items-center p-3 mb-3 bg-light rounded">
+                                    <div class="appointment-date text-center me-3">
+                                        <div class="date-day fw-bold text-primary">@appointment.AppointmentDate.Day</div>
+                                        <div class="date-month text-muted small">@appointment.AppointmentDate.ToString("MMM")</div>
+                                    </div>
+                                    <div class="appointment-details flex-grow-1">
+                                        <h6 class="mb-1">Dr. @appointment.Doctor.FirstName @appointment.Doctor.LastName</h6>
+                                        <p class="mb-1 text-muted small">@appointment.Reason</p>
+                                        <div class="d-flex align-items-center">
+                                            <span class="badge bg-@(appointment.Status == AppointmentStatus.Confirmed ? "success" : "warning") me-2">
+                                                @appointment.Status
+                                            </span>
+                                            <small class="text-muted">
+                                                <i class="fas fa-clock me-1"></i>@appointment.AppointmentTime.ToString(@"hh\:mm")
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                            <h6 class="text-muted">No upcoming appointments</h6>
+                            <p class="text-muted">Book your next appointment to get started</p>
+                            <a asp-action="BookAppointment" class="btn btn-primary">Book Appointment</a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions & Recent Activity -->
+        <div class="col-lg-4">
+            <!-- Quick Actions -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-bolt me-2 text-warning"></i>Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a asp-action="BookAppointment" class="btn btn-outline-primary">
+                            <i class="fas fa-plus me-2"></i>Book Appointment
+                        </a>
+                        <a asp-action="Profile" class="btn btn-outline-secondary">
+                            <i class="fas fa-user-edit me-2"></i>Update Profile
+                        </a>
+                        <a asp-action="Appointments" class="btn btn-outline-info">
+                            <i class="fas fa-history me-2"></i>View History
+                        </a>
+                        <button class="btn btn-outline-success" disabled>
+                            <i class="fas fa-file-medical me-2"></i>Medical Records
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-history me-2 text-info"></i>Recent Activity
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.RecentAppointments.Any())
+                    {
+                        @foreach (var appointment in Model.RecentAppointments.Take(3))
+                        {
+                            <div class="activity-item d-flex align-items-center mb-3">
+                                <div class="activity-icon me-3">
+                                    <i class="fas fa-check-circle text-success"></i>
+                                </div>
+                                <div class="activity-details">
+                                    <div class="fw-medium">Visit with Dr. @appointment.Doctor.FirstName @appointment.Doctor.LastName</div>
+                                    <small class="text-muted">@appointment.AppointmentDate.ToString("MMM dd, yyyy")</small>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-center py-3">
+                            <i class="fas fa-history fa-2x text-muted mb-2"></i>
+                            <p class="text-muted mb-0">No recent activity</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.dashboard-content {
+    padding: 20px;
+}
+
+.dashboard-title {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.dashboard-subtitle {
+    font-size: 1.1rem;
+}
+
+.stats-card {
+    transition: transform 0.2s ease-in-out;
+}
+
+.stats-card:hover {
+    transform: translateY(-2px);
+}
+
+.stats-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.stats-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+}
+
+.stats-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.appointment-item {
+    border: 1px solid #e9ecef;
+    transition: all 0.2s ease-in-out;
+}
+
+.appointment-item:hover {
+    border-color: #007bff;
+    box-shadow: 0 2px 8px rgba(0,123,255,0.1);
+}
+
+.appointment-date {
+    min-width: 60px;
+}
+
+.date-day {
+    font-size: 1.25rem;
+}
+
+.activity-item {
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f8f9fa;
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.card {
+    border-radius: 12px;
+}
+
+.btn {
+    border-radius: 8px;
+}
+</style>

@@ -1,47 +1,36 @@
-
-using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Mini_Project;
-using Mini_Project.Data;
+using HealthcareApp.Data;
+using HealthcareApp.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Define the path for the SQLite database file
-var dbPath = Path.Combine(Directory.GetCurrentDirectory(), "Data", "MiniProject.db");
+// Let .NET choose available ports automatically
 
-// Ensure the directory exists
-Directory.CreateDirectory(Path.GetDirectoryName(dbPath)!);
-
-// Configure the DbContext to use SQLite
+// Add services to the container.
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite($"Data Source={dbPath}"));
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Add Authentication
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options =>
-    {
-        options.LoginPath = "/Account/Login";
-        options.AccessDeniedPath = "/Account/AccessDenied";
-    });
-
-// Add HttpContextAccessor
-builder.Services.AddHttpContextAccessor();
-
-// Add Helper class
-builder.Services.AddScoped<Helper>();
-
-// Add Session
-builder.Services.AddSession(options =>
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(30);
-    options.Cookie.HttpOnly = true;
-    options.Cookie.IsEssential = true;
-});
+    // Password settings
+    options.Password.RequireDigit = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = true;
+    options.Password.RequiredLength = 6;
+    
+    // User settings
+    options.User.RequireUniqueEmail = true;
+    // Disable email confirmation requirement
+    options.SignIn.RequireConfirmedEmail = false;
+})
+.AddEntityFrameworkStores<ApplicationDbContext>()
+.AddDefaultTokenProviders();
 
-
-// Add controllers with views
 builder.Services.AddControllersWithViews();
 
+// Email and OTP services are no longer needed since we disabled email verification
 
 var app = builder.Build();
 
@@ -49,26 +38,106 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-// Middleware for routing
 app.UseRouting();
 
-// Use Session
-app.UseSession();
-
-// Authentication and Authorization middleware
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Map default controller route
+// Seed database with roles and default users
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<ApplicationDbContext>();
+        var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+        var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+        
+        // Ensure database is created
+        context.Database.EnsureCreated();
+        
+        // Create roles
+        await CreateRoles(roleManager);
+        
+        // Create default users
+        await CreateAdminUser(userManager);
+        await CreateDoctorUser(userManager);
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while seeding the database.");
+    }
+}
+
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Account}/{action=Login}/{id?}");
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
+
+// Helper methods for seeding data
+async Task CreateRoles(RoleManager<IdentityRole> roleManager)
+{
+    string[] roles = { "Admin", "Doctor", "Patient" };
+    
+    foreach (var role in roles)
+    {
+        if (!await roleManager.RoleExistsAsync(role))
+        {
+            await roleManager.CreateAsync(new IdentityRole(role));
+        }
+    }
+}
+
+async Task CreateAdminUser(UserManager<ApplicationUser> userManager)
+{
+    string email = "admin@healthcare.com";
+    string password = "Admin@123";
+    
+    var adminUser = await userManager.FindByEmailAsync(email);
+    if (adminUser == null)
+    {
+        var user = new ApplicationUser
+        {
+            UserName = email,
+            Email = email,
+            EmailConfirmed = true
+        };
+        
+        var result = await userManager.CreateAsync(user, password);
+        if (result.Succeeded)
+        {
+            await userManager.AddToRoleAsync(user, "Admin");
+        }
+    }
+}
+
+async Task CreateDoctorUser(UserManager<ApplicationUser> userManager)
+{
+    string email = "doctor@healthcare.com";
+    string password = "Doctor@123";
+    
+    var doctorUser = await userManager.FindByEmailAsync(email);
+    if (doctorUser == null)
+    {
+        var user = new ApplicationUser
+        {
+            UserName = email,
+            Email = email,
+            EmailConfirmed = true
+        };
+        
+        var result = await userManager.CreateAsync(user, password);
+        if (result.Succeeded)
+        {
+            await userManager.AddToRoleAsync(user, "Doctor");
+        }
+    }
+}

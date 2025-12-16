@@ -1,8 +1,6 @@
-@model Mini_Project.ViewModels.LoginVM
-@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
-
+@model HealthcareApp.Models.LoginViewModel
 @{
-    ViewData["Title"] = "Login | Silver & Scholar Health Scheduler";
+    ViewData["Title"] = "Login | Healthcare Management System";
 }
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -13,11 +11,12 @@
         --primary-blue: #2a6ebb;
         --light-blue: #e3f2fd;
         --patient-color: #4a6fa5;
-        --admin-color: #d32f2f; /* Red for admin */
-        --doctor-color: #388e3c; /* Green for doctor */
-        --success-color: #388e3c;
+        --doctor-color: #388e3c;
+        --admin-color: #d32f2f;
         --gradient-start: #1a2980;
         --gradient-end: #26d0ce;
+        --success-color: #388e3c;
+        --danger-color: #d32f2f;
     }
 
     * {
@@ -28,14 +27,15 @@
         background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
         min-height: 100vh;
         margin: 0;
-        padding: 20px;
-    }
-
-    .login-wrapper {
-        min-height: calc(100vh - 40px);
         display: flex;
         align-items: center;
         justify-content: center;
+        padding: 20px;
+    }
+
+    .login-container {
+        width: 100%;
+        max-width: 450px;
     }
 
     .login-card {
@@ -44,8 +44,6 @@
         border-radius: 20px;
         box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
         overflow: hidden;
-        width: 100%;
-        max-width: 500px;
         transition: transform 0.3s ease;
     }
 
@@ -54,96 +52,56 @@
     }
 
     .login-header {
-        padding: 30px 30px 20px;
+        padding: 40px 30px 20px;
         text-align: center;
         background: linear-gradient(135deg, var(--primary-blue), var(--gradient-end));
         color: white;
+        position: relative;
     }
 
-    .login-header h1 {
+    .login-header::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60px;
+        height: 4px;
+        background: white;
+        border-radius: 2px;
+    }
+
+    .login-logo {
+        font-size: 3.5rem;
+        margin-bottom: 10px;
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.2);
+        width: 100px;
+        height: 100px;
+        line-height: 100px;
+        border-radius: 50%;
+        margin-bottom: 20px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        transition: transform 0.3s ease;
+    }
+
+    .login-logo:hover {
+        transform: scale(1.05);
+    }
+
+    .login-title {
         font-size: 1.8rem;
         font-weight: 600;
         margin-bottom: 5px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
     }
 
-    .login-header p {
-        opacity: 0.9;
+    .login-subtitle {
         font-size: 0.9rem;
+        opacity: 0.9;
     }
 
-    .login-navigation {
-        display: flex;
-        gap: 15px;
-        margin: 0 30px 25px;
-    }
-
-    .nav-card {
-        flex: 1;
-        background: white;
-        border-radius: 12px;
-        padding: 20px 15px;
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        border: 2px solid #e0e0e0;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-        text-decoration: none;
-        color: inherit;
-        display: block;
-    }
-
-    .nav-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-    }
-
-    .nav-card.active {
-        border-color: var(--patient-color);
-        background: linear-gradient(135deg, #f8f9ff, #e3f2fd);
-        box-shadow: 0 6px 12px rgba(74, 111, 165, 0.15);
-    }
-
-    .nav-card.doctor:hover {
-        border-color: var(--doctor-color);
-    }
-
-    .nav-card.admin:hover {
-        border-color: var(--admin-color);
-    }
-
-    .nav-icon {
-        font-size: 2rem;
-        margin-bottom: 10px;
-        color: var(--patient-color);
-    }
-
-    .nav-card.doctor .nav-icon {
-        color: var(--doctor-color);
-    }
-
-    .nav-card.admin .nav-icon {
-        color: var(--admin-color);
-    }
-
-    .nav-title {
-        font-weight: 600;
-        font-size: 1rem;
-        margin-bottom: 5px;
-        color: #333;
-    }
-
-    .nav-desc {
-        font-size: 0.8rem;
-        color: #666;
-        line-height: 1.3;
-    }
-
-    .form-container {
-        padding: 0 30px 30px;
+    .login-body {
+        padding: 40px 30px;
     }
 
     .form-group {
@@ -156,53 +114,53 @@
         margin-bottom: 8px;
         font-weight: 500;
         color: #333;
-        font-size: 0.9rem;
+        font-size: 0.95rem;
     }
 
     .form-control {
         width: 100%;
-        padding: 14px 50px 14px 16px;
+        padding: 16px 20px;
         border: 2px solid #e0e0e0;
-        border-radius: 10px;
+        border-radius: 12px;
         font-size: 1rem;
         transition: all 0.3s ease;
         background: white;
+        height: 56px;
+        line-height: 1.5;
     }
 
     .form-control:focus {
-        border-color: var(--patient-color);
-        box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.1);
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 3px rgba(42, 110, 187, 0.1);
         outline: none;
     }
 
-    .input-icon {
-        position: absolute;
-        right: 16px;
-        top: 42px;
-        color: #999;
-        font-size: 1.1rem;
+    .password-container {
+        position: relative;
     }
 
     .password-toggle {
         position: absolute;
-        right: 16px;
-        top: 42px;
+        right: 18px;
+        top: 50%;
+        transform: translateY(-50%);
         background: transparent;
         border: none;
         color: #999;
-        font-size: 1.1rem;
+        font-size: 1.2rem;
         cursor: pointer;
-        z-index: 10;
         padding: 0;
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 24px;
-        height: 24px;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        transition: all 0.3s ease;
     }
 
     .password-toggle:hover {
-        color: var(--patient-color);
+        color: var(--primary-blue);
     }
 
     .remember-forgot {
@@ -212,25 +170,33 @@
         margin-bottom: 1.5rem;
     }
 
-    .checkbox-container {
+    .remember-me {
         display: flex;
         align-items: center;
         gap: 8px;
         cursor: pointer;
     }
 
-    .checkbox-container input[type="checkbox"] {
+    .remember-me input[type="checkbox"] {
         width: 18px;
         height: 18px;
         border-radius: 4px;
         cursor: pointer;
+        accent-color: var(--primary-blue);
+    }
+
+    .remember-me label {
+        cursor: pointer;
+        font-size: 0.9rem;
+        color: #555;
     }
 
     .forgot-link {
-        color: var(--patient-color);
+        color: var(--primary-blue);
         text-decoration: none;
         font-size: 0.9rem;
-        transition: color 0.3s ease;
+        transition: all 0.3s ease;
+        font-weight: 500;
     }
 
     .forgot-link:hover {
@@ -238,93 +204,44 @@
         text-decoration: underline;
     }
 
-    .submit-btn {
+    .login-btn {
         width: 100%;
         padding: 16px;
+        background: linear-gradient(to right, var(--primary-blue), #3a86ff);
+        color: white;
         border: none;
-        border-radius: 10px;
+        border-radius: 12px;
         font-size: 1.1rem;
         font-weight: 600;
         cursor: pointer;
         transition: all 0.3s ease;
-        margin-bottom: 1.5rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: white;
-        background: linear-gradient(to right, var(--patient-color), #6b93d6);
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 10px;
+        margin-bottom: 1.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
 
-    .submit-btn:hover {
-        background: linear-gradient(to right, #3a5f95, #5b83c6);
+    .login-btn:hover {
+        background: linear-gradient(to right, #1a56a5, #2a75ff);
         transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(74, 111, 165, 0.3);
+        box-shadow: 0 8px 20px rgba(42, 110, 187, 0.3);
     }
 
-    .submit-btn:active {
+    .login-btn:active {
         transform: translateY(0);
     }
 
-    .other-logins {
+    .login-footer {
         text-align: center;
-        padding-top: 20px;
-        border-top: 1px solid #eee;
-    }
-
-    .other-logins p {
-        margin-bottom: 10px;
-        color: #666;
-        font-size: 0.95rem;
-    }
-
-    .other-login-link {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 10px 20px;
-        border-radius: 8px;
-        text-decoration: none;
-        font-weight: 500;
-        transition: all 0.3s ease;
-        margin: 0 5px;
-    }
-
-    .doctor-login-link {
-        color: var(--doctor-color);
-        border: 2px solid var(--doctor-color);
-        background: rgba(56, 142, 60, 0.1);
-    }
-
-    .doctor-login-link:hover {
-        background: var(--doctor-color);
-        color: white;
-        transform: translateY(-2px);
-    }
-
-    .admin-login-link {
-        color: var(--admin-color);
-        border: 2px solid var(--admin-color);
-        background: rgba(211, 47, 47, 0.1);
-    }
-
-    .admin-login-link:hover {
-        background: var(--admin-color);
-        color: white;
-        transform: translateY(-2px);
-    }
-
-    .register-section {
-        text-align: center;
-        margin-top: 20px;
         padding-top: 20px;
         border-top: 1px solid #eee;
     }
 
     .register-link {
-        color: var(--patient-color);
+        color: var(--primary-blue);
         text-decoration: none;
         font-weight: 600;
         transition: all 0.3s ease;
@@ -338,25 +255,100 @@
         text-decoration: underline;
     }
 
-    .alert-message {
-        padding: 12px 20px;
-        border-radius: 10px;
-        margin: 0 30px 20px;
-        font-size: 0.9rem;
+    .role-logins {
+        margin-top: 30px;
         text-align: center;
+    }
+
+    .role-logins p {
+        color: #666;
+        margin-bottom: 15px;
+        font-size: 0.9rem;
+    }
+
+    .role-buttons {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+    }
+
+    .role-btn {
+        padding: 10px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .role-btn.doctor {
+        background: rgba(56, 142, 60, 0.1);
+        color: var(--doctor-color);
+        border: 1px solid rgba(56, 142, 60, 0.3);
+    }
+
+    .role-btn.doctor:hover {
+        background: var(--doctor-color);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .role-btn.admin {
+        background: rgba(211, 47, 47, 0.1);
+        color: var(--admin-color);
+        border: 1px solid rgba(211, 47, 47, 0.3);
+    }
+
+    .role-btn.admin:hover {
+        background: var(--admin-color);
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .validation-summary-errors {
+        background: rgba(255, 235, 238, 0.9);
+        border: 1px solid #ffcdd2;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 25px;
         animation: slideDown 0.3s ease;
     }
 
-    .alert-error {
-        background: #ffebee;
-        color: #c62828;
-        border: 1px solid #ffcdd2;
+    .validation-summary-errors ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
     }
 
-    .alert-success {
-        background: #e8f5e9;
-        color: var(--success-color);
-        border: 1px solid #c8e6c9;
+    .validation-summary-errors li {
+        color: #d32f2f;
+        font-size: 0.9rem;
+        margin: 5px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .validation-summary-errors li:before {
+        content: "⚠";
+        font-size: 1rem;
+    }
+
+    .field-validation-error {
+        display: block;
+        margin-top: 5px;
+        font-size: 0.85rem;
+        color: var(--danger-color);
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .field-validation-error:before {
+        content: "•";
     }
 
     @@keyframes slideDown {
@@ -364,124 +356,99 @@
         to { transform: translateY(0); opacity: 1; }
     }
 
+    /* Responsive Design */
     @@media (max-width: 576px) {
         body {
             padding: 10px;
         }
-        
-        .login-card {
+
+        .login-container {
             max-width: 100%;
-            margin: 0;
         }
-        
-        .login-header, .form-container {
-            padding: 25px 20px;
+
+        .login-header, .login-body {
+            padding: 30px 20px;
         }
-        
-        .login-navigation {
-            margin: 0 20px 20px;
+
+        .login-logo {
+            width: 85px;
+            height: 85px;
+            line-height: 85px;
+            font-size: 3rem;
+        }
+
+        .role-buttons {
             flex-direction: column;
         }
-        
-        .other-login-link {
-            display: block;
-            margin: 8px 0;
+
+        .role-btn {
+            width: 100%;
+            justify-content: center;
         }
     }
 </style>
 
-<div class="login-wrapper">
+<div class="login-container">
     <div class="login-card">
         <div class="login-header">
-            <h1><i class="bi bi-calendar-heart"></i> Silver & Scholar Health</h1>
-            <p>Patient Login Portal</p>
+            <div class="login-logo">
+                <i class="bi bi-heart-pulse"></i>
+            </div>
+            <h2 class="login-title">Welcome Back</h2>
+            <p class="login-subtitle">Sign in to your Healthcare account</p>
         </div>
 
-        @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
-        {
-            <div class="alert-message alert-error">
-                <i class="bi bi-exclamation-triangle"></i> @ViewBag.ErrorMessage
-            </div>
-        }
+        <div class="login-body">
+            <form asp-action="Login" method="post">
+                <div asp-validation-summary="All" class="validation-summary-errors"></div>
 
-        @if (!string.IsNullOrEmpty(ViewBag.SuccessMessage))
-        {
-            <div class="alert-message alert-success">
-                <i class="bi bi-check-circle"></i> @ViewBag.SuccessMessage
-            </div>
-        }
-
-        <div class="login-navigation">
-            <a href="#" class="nav-card active">
-                <i class="bi bi-person-circle nav-icon"></i>
-                <div class="nav-title">Patient Login</div>
-                <div class="nav-desc">Book appointments & manage health</div>
-            </a>
-            
-            <a asp-action="DoctorLogin" asp-controller="Account" class="nav-card doctor">
-                <i class="bi bi-activity nav-icon"></i>
-                <div class="nav-title">Doctor Login</div>
-                <div class="nav-desc">Manage schedule & consultations</div>
-            </a>
-            
-            <a asp-action="AdminLogin" asp-controller="Account" class="nav-card admin">
-                <i class="bi bi-shield-check nav-icon"></i>
-                <div class="nav-title">Admin Login</div>
-                <div class="nav-desc">System management & reports</div>
-            </a>
-        </div>
-
-        <!-- Patient Login Form -->
-        <div class="form-container">
-            <form asp-action="Login" asp-controller="Account" method="post">
                 <div class="form-group">
-                    <label class="form-label" asp-for="Email">Email Address</label>
-                    <input asp-for="Email" class="form-control" placeholder="Enter your email" />
-                    <i class="bi bi-envelope input-icon"></i>
-                    <span asp-validation-for="Email" class="text-danger small"></span>
+                    <label asp-for="Email" class="form-label">Email Address</label>
+                    <div class="position-relative">
+                        <input asp-for="Email" class="form-control" placeholder="Enter your email address" />
+                    </div>
+                    <span asp-validation-for="Email" class="field-validation-error"></span>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" asp-for="Password">Password</label>
-                    <input asp-for="Password" type="password" class="form-control" id="passwordInput" placeholder="Enter your password" />
-                    <button type="button" class="password-toggle" id="togglePassword">
-                        <i class="bi bi-eye"></i>
-                    </button>
-                    <span asp-validation-for="Password" class="text-danger small"></span>
+                    <label asp-for="Password" class="form-label">Password</label>
+                    <div class="position-relative password-container">
+                        <input asp-for="Password" type="password" class="form-control" id="passwordInput" placeholder="Enter your password" />
+                        <button type="button" class="password-toggle" id="togglePassword">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                    <span asp-validation-for="Password" class="field-validation-error"></span>
                 </div>
 
                 <div class="remember-forgot">
-                    <label class="checkbox-container">
-                        <input asp-for="RememberMe" type="checkbox" />
-                        <span>Remember me</span>
-                    </label>
-                    <a href="#" class="forgot-link">Forgot Password?</a>
+                    <div class="remember-me">
+                        <input asp-for="RememberMe" type="checkbox" id="rememberMe" />
+                        <label for="rememberMe">Remember me</label>
+                    </div>
+                    <a href="#" class="forgot-link">Forgot password?</a>
                 </div>
 
-                <button type="submit" class="submit-btn">
-                    <i class="bi bi-box-arrow-in-right"></i> Patient Login
+                <button type="submit" class="login-btn">
+                    <i class="bi bi-box-arrow-in-right"></i> Sign In
                 </button>
             </form>
-        </div>
 
-        <div class="other-logins">
-            <p>Are you a doctor or administrator?</p>
-            <div>
-                <a asp-action="DoctorLogin" asp-controller="Account" class="other-login-link doctor-login-link">
-                    <i class="bi bi-activity"></i> Doctor Login
-                </a>
-                <a asp-action="AdminLogin" asp-controller="Account" class="other-login-link admin-login-link">
-                    <i class="bi bi-shield-check"></i> Admin Login
-                </a>
+            <div class="login-footer">
+                <p>Don't have an account? <a asp-action="Register" class="register-link"><i class="bi bi-person-plus"></i> Create Account</a></p>
             </div>
-        </div>
 
-        <div class="register-section">
-            <p>Don't have an account? 
-                <a asp-action="Register" asp-controller="Account" class="register-link">
-                    <i class="bi bi-person-plus"></i> Create Account
-                </a>
-            </p>
+            <div class="role-logins">
+                <p>Are you a healthcare professional?</p>
+                <div class="role-buttons">
+                    <a asp-controller="Account" asp-action="LoginDoctor" class="role-btn doctor">
+                        <i class="bi bi-activity"></i> Doctor Login
+                    </a>
+                    <a asp-controller="Account" asp-action="LoginAdmin" class="role-btn admin">
+                        <i class="bi bi-shield-check"></i> Admin Login
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -489,8 +456,8 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
-        // Password visibility toggle
         document.addEventListener('DOMContentLoaded', function() {
+            // Password visibility toggle
             const toggleButton = document.getElementById('togglePassword');
             const passwordInput = document.getElementById('passwordInput');
             
@@ -510,52 +477,59 @@
                     }
                 });
             }
+
+            // Form validation highlighting
+            const form = document.querySelector('form');
+            const inputs = document.querySelectorAll('.form-control');
             
-            // Simple hover effect for navigation cards
-            const navCards = document.querySelectorAll('.nav-card');
-            
-            navCards.forEach(card => {
-                card.addEventListener('mouseenter', function() {
-                    this.style.transform = 'translateY(-3px)';
-                    this.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.1)';
+            inputs.forEach(input => {
+                // Clear error on focus
+                input.addEventListener('focus', function() {
+                    this.style.borderColor = '';
+                    const errorSpan = this.parentElement.nextElementSibling;
+                    if (errorSpan && errorSpan.classList.contains('field-validation-error')) {
+                        errorSpan.style.opacity = '0.5';
+                    }
+                });
+
+                // Restore error on blur if invalid
+                input.addEventListener('blur', function() {
+                    if (!this.value.trim() && this.hasAttribute('required')) {
+                        this.style.borderColor = 'var(--danger-color)';
+                        const errorSpan = this.parentElement.nextElementSibling;
+                        if (errorSpan && errorSpan.classList.contains('field-validation-error')) {
+                            errorSpan.style.opacity = '1';
+                        }
+                    }
+                });
+
+                // Check if field has error on page load
+                if (input.classList.contains('input-validation-error')) {
+                    input.style.borderColor = 'var(--danger-color)';
+                }
+            });
+
+            // Button hover effect
+            const loginBtn = document.querySelector('.login-btn');
+            if (loginBtn) {
+                loginBtn.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
                 });
                 
-                card.addEventListener('mouseleave', function() {
-                    if (!this.classList.contains('active')) {
-                        this.style.transform = 'translateY(0)';
-                        this.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.05)';
-                    }
-                });
-            });
-            
-            // Form validation
-            const form = document.querySelector('form');
-            if (form) {
-                form.addEventListener('submit', function(e) {
-                    const email = document.querySelector('input[name="Email"]');
-                    const password = document.querySelector('input[name="Password"]');
-                    let isValid = true;
-                    
-                    if (!email.value.trim()) {
-                        isValid = false;
-                        email.style.borderColor = '#f44336';
-                    }
-                    
-                    if (!password.value.trim()) {
-                        isValid = false;
-                        password.style.borderColor = '#f44336';
-                    }
-                    
-                    if (!isValid) {
-                        e.preventDefault();
-                    }
+                loginBtn.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
                 });
             }
-            
-            // Clear validation on focus
-            document.querySelectorAll('.form-control').forEach(input => {
-                input.addEventListener('focus', function() {
-                    this.style.borderColor = 'var(--patient-color)';
+
+            // Role button animations
+            const roleButtons = document.querySelectorAll('.role-btn');
+            roleButtons.forEach(btn => {
+                btn.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                });
+                
+                btn.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
                 });
             });
         });

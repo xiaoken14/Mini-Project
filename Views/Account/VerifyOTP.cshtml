@@ -1,0 +1,162 @@
+@model HealthcareApp.Models.VerifyOTPViewModel
+@{
+    ViewData["Title"] = "Verify Email";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="text-center">Verify Your Email</h4>
+                </div>
+                <div class="card-body">
+                    @if (TempData["Message"] != null)
+                    {
+                        <div class="alert alert-success">
+                            @TempData["Message"]
+                        </div>
+                    }
+                    
+                    <div class="text-center mb-4">
+                        <i class="fas fa-envelope fa-3x text-primary mb-3"></i>
+                        <p>We've sent a 6-digit verification code to:</p>
+                        <strong>@Model.Email</strong>
+                        <p class="text-muted mt-2">Please enter the code below to verify your email address.</p>
+                    </div>
+
+                    <form asp-action="VerifyOTP" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        
+                        <input asp-for="Email" type="hidden" />
+                        
+                        <div class="mb-3">
+                            <label asp-for="OTP" class="form-label">Verification Code</label>
+                            <input asp-for="OTP" class="form-control text-center" 
+                                   style="font-size: 24px; letter-spacing: 5px;" 
+                                   placeholder="000000" 
+                                   maxlength="6" 
+                                   autocomplete="off" />
+                            <span asp-validation-for="OTP" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Verify Email</button>
+                        </div>
+                    </form>
+
+                    <div class="text-center mt-4">
+                        <p class="text-muted">Didn't receive the code?</p>
+                        <form asp-action="ResendOTP" method="post" class="d-inline">
+                            <input name="email" type="hidden" value="@Model.Email" />
+                            <button type="submit" class="btn btn-link">Resend Code</button>
+                        </form>
+                    </div>
+
+                    <div class="text-center mt-3">
+                        <small class="text-muted">
+                            The verification code will expire in 10 minutes.
+                        </small>
+                    </div>
+
+                    <!-- Development Helper -->
+                    <div class="text-center mt-3" id="devHelper" style="display: none;">
+                        <div class="alert alert-warning">
+                            <strong>Development Mode:</strong><br>
+                            <button type="button" class="btn btn-sm btn-outline-primary me-2" onclick="getOTP()">
+                                Get OTP for This Email
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="showRecentOTPs()">
+                                Show Recent OTPs
+                            </button>
+                            <div id="otpResult" class="mt-2"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Auto-focus on OTP input and format input
+    document.addEventListener('DOMContentLoaded', function() {
+        const otpInput = document.querySelector('input[name="OTP"]');
+        if (otpInput) {
+            otpInput.focus();
+            
+            // Only allow numbers
+            otpInput.addEventListener('input', function(e) {
+                this.value = this.value.replace(/[^0-9]/g, '');
+            });
+        }
+
+        // Show development helper if in development mode
+        if (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost') {
+            document.getElementById('devHelper').style.display = 'block';
+        }
+    });
+
+    function getOTP() {
+        const email = '@Model.Email';
+        const resultDiv = document.getElementById('otpResult');
+        resultDiv.innerHTML = 'Loading...';
+        resultDiv.className = 'mt-2 text-info';
+        
+        fetch(`/Account/GetOTP?email=${encodeURIComponent(email)}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('OTP Response:', data);
+                if (data.otp) {
+                    resultDiv.innerHTML = `<strong>Your OTP: ${data.otp}</strong><br><small>${data.message}</small>`;
+                    resultDiv.className = 'mt-2 text-success';
+                    
+                    // Auto-fill the OTP input
+                    document.querySelector('input[name="OTP"]').value = data.otp;
+                } else {
+                    resultDiv.innerHTML = data.message || 'No OTP found';
+                    resultDiv.className = 'mt-2 text-warning';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                resultDiv.innerHTML = `Error: ${error.message}`;
+                resultDiv.className = 'mt-2 text-danger';
+            });
+    }
+
+    function showRecentOTPs() {
+        const resultDiv = document.getElementById('otpResult');
+        resultDiv.innerHTML = 'Loading recent OTPs...';
+        resultDiv.className = 'mt-2 text-info';
+        
+        fetch('/Account/ShowRecentOTPs')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Recent OTPs:', data);
+                if (data.otps && data.otps.length > 0) {
+                    const otpList = data.otps.map(line => `<div class="small">${line}</div>`).join('');
+                    resultDiv.innerHTML = `<strong>Recent OTPs:</strong><br>${otpList}`;
+                    resultDiv.className = 'mt-2 text-success';
+                } else {
+                    resultDiv.innerHTML = data.message || 'No recent OTPs found';
+                    resultDiv.className = 'mt-2 text-warning';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                resultDiv.innerHTML = `Error: ${error.message}`;
+                resultDiv.className = 'mt-2 text-danger';
+            });
+    }
+</script>

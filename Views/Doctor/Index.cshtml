@@ -1,5 +1,5 @@
 @{
-    ViewData["Title"] = "Admin Dashboard | Healthcare Management System";
+    ViewData["Title"] = "Doctor Dashboard | Healthcare Management System";
 }
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -7,10 +7,10 @@
 
 <style>
     :root {
-        --admin-primary: #d32f2f;
-        --admin-secondary: #f44336;
-        --admin-light: #ffebee;
-        --admin-dark: #b71c1c;
+        --doctor-primary: #388e3c;
+        --doctor-secondary: #4caf50;
+        --doctor-light: #e8f5e8;
+        --doctor-dark: #2e7d32;
         --success-color: #388e3c;
         --warning-color: #f57c00;
         --info-color: #2196f3;
@@ -26,37 +26,37 @@
         min-height: 100vh;
     }
 
-    .admin-dashboard {
+    .doctor-dashboard {
         padding: 30px 0;
     }
 
-    .admin-header {
-        background: linear-gradient(135deg, var(--admin-primary), var(--admin-secondary));
+    .doctor-header {
+        background: linear-gradient(135deg, var(--doctor-primary), var(--doctor-secondary));
         color: white;
         padding: 40px 0;
         margin-bottom: 40px;
         border-radius: 0 0 30px 30px;
-        box-shadow: 0 10px 30px rgba(211, 47, 47, 0.3);
+        box-shadow: 0 10px 30px rgba(56, 142, 60, 0.3);
     }
 
-    .admin-welcome {
+    .doctor-welcome {
         text-align: center;
     }
 
-    .admin-welcome h1 {
+    .doctor-welcome h1 {
         font-size: 2.5rem;
         font-weight: 600;
         margin-bottom: 15px;
         text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
     }
 
-    .admin-welcome p {
+    .doctor-welcome p {
         font-size: 1.1rem;
         opacity: 0.9;
         margin-bottom: 0;
     }
 
-    .admin-stats {
+    .doctor-stats {
         margin-bottom: 40px;
     }
 
@@ -67,7 +67,7 @@
         text-align: center;
         box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
         transition: all 0.3s ease;
-        border: 1px solid rgba(211, 47, 47, 0.1);
+        border: 1px solid rgba(56, 142, 60, 0.1);
         height: 100%;
     }
 
@@ -88,26 +88,26 @@
         color: white;
     }
 
-    .stat-icon.users {
+    .stat-icon.appointments {
         background: linear-gradient(135deg, var(--info-color), #42a5f5);
     }
 
-    .stat-icon.doctors {
+    .stat-icon.patients {
         background: linear-gradient(135deg, var(--success-color), #66bb6a);
     }
 
-    .stat-icon.patients {
+    .stat-icon.consultations {
         background: linear-gradient(135deg, var(--warning-color), #ffb74d);
     }
 
-    .stat-icon.appointments {
-        background: linear-gradient(135deg, var(--admin-primary), #ef5350);
+    .stat-icon.prescriptions {
+        background: linear-gradient(135deg, var(--danger-color), #ef5350);
     }
 
     .stat-number {
         font-size: 2.5rem;
         font-weight: 700;
-        color: var(--admin-primary);
+        color: var(--doctor-primary);
         margin-bottom: 10px;
     }
 
@@ -117,7 +117,7 @@
         font-weight: 500;
     }
 
-    .admin-actions {
+    .doctor-actions {
         margin-bottom: 40px;
     }
 
@@ -127,7 +127,7 @@
         padding: 30px;
         box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
         transition: all 0.3s ease;
-        border: 1px solid rgba(211, 47, 47, 0.1);
+        border: 1px solid rgba(56, 142, 60, 0.1);
         height: 100%;
         text-decoration: none;
         color: inherit;
@@ -153,26 +153,26 @@
         color: white;
     }
 
-    .action-icon.manage-users {
+    .action-icon.schedule {
         background: linear-gradient(135deg, var(--info-color), #42a5f5);
     }
 
-    .action-icon.reports {
+    .action-icon.patients {
         background: linear-gradient(135deg, var(--success-color), #66bb6a);
     }
 
-    .action-icon.settings {
+    .action-icon.appointments {
         background: linear-gradient(135deg, var(--warning-color), #ffb74d);
     }
 
-    .action-icon.system {
-        background: linear-gradient(135deg, var(--admin-primary), #ef5350);
+    .action-icon.records {
+        background: linear-gradient(135deg, var(--danger-color), #ef5350);
     }
 
     .action-title {
         font-size: 1.3rem;
         font-weight: 600;
-        color: var(--admin-primary);
+        color: var(--doctor-primary);
         margin-bottom: 10px;
     }
 
@@ -187,7 +187,7 @@
         border-radius: 20px;
         padding: 30px;
         box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-        border: 1px solid rgba(211, 47, 47, 0.1);
+        border: 1px solid rgba(56, 142, 60, 0.1);
     }
 
     .activity-header {
@@ -195,12 +195,12 @@
         align-items: center;
         margin-bottom: 25px;
         padding-bottom: 15px;
-        border-bottom: 2px solid rgba(211, 47, 47, 0.1);
+        border-bottom: 2px solid rgba(56, 142, 60, 0.1);
     }
 
     .activity-header h3 {
         margin: 0;
-        color: var(--admin-primary);
+        color: var(--doctor-primary);
         font-weight: 600;
         font-size: 1.4rem;
     }
@@ -208,7 +208,7 @@
     .activity-header i {
         margin-right: 15px;
         font-size: 1.5rem;
-        color: var(--admin-secondary);
+        color: var(--doctor-secondary);
     }
 
     .activity-item {
@@ -240,7 +240,7 @@
 
     .activity-title {
         font-weight: 500;
-        color: var(--admin-primary);
+        color: var(--doctor-primary);
         margin-bottom: 5px;
     }
 
@@ -253,7 +253,7 @@
         position: fixed;
         top: 20px;
         right: 20px;
-        background: linear-gradient(135deg, var(--admin-primary), var(--admin-secondary));
+        background: linear-gradient(135deg, var(--doctor-primary), var(--doctor-secondary));
         color: white;
         border: none;
         padding: 12px 20px;
@@ -261,7 +261,7 @@
         font-weight: 500;
         cursor: pointer;
         transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(211, 47, 47, 0.3);
+        box-shadow: 0 4px 15px rgba(56, 142, 60, 0.3);
         display: flex;
         align-items: center;
         gap: 8px;
@@ -270,16 +270,16 @@
 
     .logout-btn:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(211, 47, 47, 0.4);
+        box-shadow: 0 6px 20px rgba(56, 142, 60, 0.4);
     }
 
     @@media (max-width: 768px) {
-        .admin-header {
+        .doctor-header {
             padding: 30px 0;
             margin-bottom: 30px;
         }
 
-        .admin-welcome h1 {
+        .doctor-welcome h1 {
             font-size: 2rem;
         }
 
@@ -298,101 +298,101 @@
     }
 </style>
 
-<div class="admin-dashboard">
+<div class="doctor-dashboard">
     <!-- Header -->
-    <div class="admin-header">
+    <div class="doctor-header">
         <div class="container">
-            <div class="admin-welcome">
+            <div class="doctor-welcome">
                 <div style="margin-bottom: 20px;">
                     <i class="bi bi-heart-pulse-fill" style="font-size: 2rem; color: white; margin-right: 15px;"></i>
                     <span style="font-size: 1.5rem; font-weight: 600;">HealthCarePro</span>
                 </div>
-                <h1><i class="bi bi-shield-check"></i> Admin Dashboard</h1>
-                <p>Manage users, monitor system performance, and oversee healthcare operations</p>
+                <h1><i class="bi bi-heart-pulse"></i> Doctor Dashboard</h1>
+                <p>Manage your patients, appointments, and provide quality healthcare</p>
             </div>
         </div>
     </div>
 
     <div class="container">
         <!-- Stats Section -->
-        <div class="admin-stats">
+        <div class="doctor-stats">
             <div class="row">
-                <div class="col-md-3 col-sm-6 mb-4">
-                    <div class="stat-card">
-                        <div class="stat-icon users">
-                            <i class="bi bi-people"></i>
-                        </div>
-                        <div class="stat-number">156</div>
-                        <div class="stat-label">Total Users</div>
-                    </div>
-                </div>
-                <div class="col-md-3 col-sm-6 mb-4">
-                    <div class="stat-card">
-                        <div class="stat-icon doctors">
-                            <i class="bi bi-person-badge"></i>
-                        </div>
-                        <div class="stat-number">24</div>
-                        <div class="stat-label">Active Doctors</div>
-                    </div>
-                </div>
-                <div class="col-md-3 col-sm-6 mb-4">
-                    <div class="stat-card">
-                        <div class="stat-icon patients">
-                            <i class="bi bi-person-heart"></i>
-                        </div>
-                        <div class="stat-number">128</div>
-                        <div class="stat-label">Registered Patients</div>
-                    </div>
-                </div>
                 <div class="col-md-3 col-sm-6 mb-4">
                     <div class="stat-card">
                         <div class="stat-icon appointments">
                             <i class="bi bi-calendar-check"></i>
                         </div>
-                        <div class="stat-number">89</div>
+                        <div class="stat-number">12</div>
                         <div class="stat-label">Today's Appointments</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6 mb-4">
+                    <div class="stat-card">
+                        <div class="stat-icon patients">
+                            <i class="bi bi-people"></i>
+                        </div>
+                        <div class="stat-number">89</div>
+                        <div class="stat-label">Active Patients</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6 mb-4">
+                    <div class="stat-card">
+                        <div class="stat-icon consultations">
+                            <i class="bi bi-chat-dots"></i>
+                        </div>
+                        <div class="stat-number">156</div>
+                        <div class="stat-label">Consultations This Month</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6 mb-4">
+                    <div class="stat-card">
+                        <div class="stat-icon prescriptions">
+                            <i class="bi bi-capsule"></i>
+                        </div>
+                        <div class="stat-number">34</div>
+                        <div class="stat-label">Prescriptions Written</div>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Quick Actions -->
-        <div class="admin-actions">
+        <div class="doctor-actions">
             <div class="row">
                 <div class="col-md-3 col-sm-6 mb-4">
-                    <a href="@Url.Action("Users", "Admin")" class="action-card">
-                        <div class="action-icon manage-users">
-                            <i class="bi bi-person-lines-fill"></i>
+                    <a href="@Url.Action("Schedule", "Doctor")" class="action-card">
+                        <div class="action-icon schedule">
+                            <i class="bi bi-calendar-week"></i>
                         </div>
-                        <div class="action-title">Manage Users</div>
-                        <div class="action-description">Add, edit, or remove user accounts and manage permissions</div>
+                        <div class="action-title">View Schedule</div>
+                        <div class="action-description">Check your daily schedule and upcoming appointments</div>
                     </a>
                 </div>
                 <div class="col-md-3 col-sm-6 mb-4">
-                    <a href="@Url.Action("Reports", "Admin")" class="action-card">
-                        <div class="action-icon reports">
-                            <i class="bi bi-graph-up"></i>
+                    <a href="@Url.Action("Patients", "Doctor")" class="action-card">
+                        <div class="action-icon patients">
+                            <i class="bi bi-people"></i>
                         </div>
-                        <div class="action-title">View Reports</div>
-                        <div class="action-description">Generate and view system reports and analytics</div>
+                        <div class="action-title">My Patients</div>
+                        <div class="action-description">View and manage your patient list and medical histories</div>
+                    </a>
+                </div>
+                <div class="col-md-3 col-sm-6 mb-4">
+                    <a href="@Url.Action("Appointments", "Doctor")" class="action-card">
+                        <div class="action-icon appointments">
+                            <i class="bi bi-calendar-plus"></i>
+                        </div>
+                        <div class="action-title">Appointments</div>
+                        <div class="action-description">Manage appointments and consultation schedules</div>
                     </a>
                 </div>
                 <div class="col-md-3 col-sm-6 mb-4">
                     <a href="#" class="action-card">
-                        <div class="action-icon settings">
-                            <i class="bi bi-gear"></i>
+                        <div class="action-icon records">
+                            <i class="bi bi-file-medical"></i>
                         </div>
-                        <div class="action-title">System Settings</div>
-                        <div class="action-description">Configure system preferences and application settings</div>
-                    </a>
-                </div>
-                <div class="col-md-3 col-sm-6 mb-4">
-                    <a href="#" class="action-card">
-                        <div class="action-icon system">
-                            <i class="bi bi-server"></i>
-                        </div>
-                        <div class="action-title">System Monitor</div>
-                        <div class="action-description">Monitor system health and performance metrics</div>
+                        <div class="action-title">Medical Records</div>
+                        <div class="action-description">Access and update patient medical records</div>
                     </a>
                 </div>
             </div>
@@ -402,41 +402,41 @@
         <div class="recent-activity">
             <div class="activity-header">
                 <i class="bi bi-clock-history"></i>
-                <h3>Recent System Activity</h3>
+                <h3>Recent Activity</h3>
             </div>
             <div class="activity-item">
                 <div class="activity-icon" style="background: linear-gradient(135deg, var(--info-color), #42a5f5);">
-                    <i class="bi bi-person-plus"></i>
+                    <i class="bi bi-calendar-check"></i>
                 </div>
                 <div class="activity-content">
-                    <div class="activity-title">New doctor registered: Dr. Sarah Wilson</div>
-                    <div class="activity-time">15 minutes ago</div>
+                    <div class="activity-title">Appointment completed with John Smith</div>
+                    <div class="activity-time">30 minutes ago</div>
                 </div>
             </div>
             <div class="activity-item">
                 <div class="activity-icon" style="background: linear-gradient(135deg, var(--success-color), #66bb6a);">
-                    <i class="bi bi-shield-check"></i>
+                    <i class="bi bi-capsule"></i>
                 </div>
                 <div class="activity-content">
-                    <div class="activity-title">System backup completed successfully</div>
+                    <div class="activity-title">Prescription issued for Maria Garcia</div>
                     <div class="activity-time">1 hour ago</div>
                 </div>
             </div>
             <div class="activity-item">
                 <div class="activity-icon" style="background: linear-gradient(135deg, var(--warning-color), #ffb74d);">
-                    <i class="bi bi-exclamation-triangle"></i>
+                    <i class="bi bi-file-earmark-medical"></i>
                 </div>
                 <div class="activity-content">
-                    <div class="activity-title">High server load detected - monitoring</div>
+                    <div class="activity-title">Medical record updated for David Johnson</div>
                     <div class="activity-time">2 hours ago</div>
                 </div>
             </div>
             <div class="activity-item">
-                <div class="activity-icon" style="background: linear-gradient(135deg, var(--admin-primary), #ef5350);">
-                    <i class="bi bi-file-earmark-text"></i>
+                <div class="activity-icon" style="background: linear-gradient(135deg, var(--danger-color), #ef5350);">
+                    <i class="bi bi-calendar-plus"></i>
                 </div>
                 <div class="activity-content">
-                    <div class="activity-title">Monthly report generated</div>
+                    <div class="activity-title">New appointment scheduled with Sarah Wilson</div>
                     <div class="activity-time">3 hours ago</div>
                 </div>
             </div>
