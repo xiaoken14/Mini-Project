@@ -1,121 +1,583 @@
 @model HealthcareApp.Models.RegisterViewModel
 @{
-    ViewData["Title"] = "Register";
+    ViewData["Title"] = "Patient Registration | Silver & Scholar Health Scheduler";
 }
 
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="text-center">Register</h3>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --patient-primary: #2196f3;
+        --patient-secondary: #42a5f5;
+        --patient-light: #e3f2fd;
+        --patient-dark: #1976d2;
+        --gradient-start: #0d47a1;
+        --gradient-mid: #1565c0;
+        --gradient-end: #1976d2;
+        --success-color: #4caf50;
+        --info-color: #2196f3;
+    }
+
+    * {
+        font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+        background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-mid) 50%, var(--gradient-end) 100%);
+        min-height: 100vh;
+        margin: 0;
+        padding: 20px 0;
+        position: relative;
+        overflow-x: hidden;
+    }
+
+    .container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 20px;
+    }
+
+    body::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(circle at 20% 80%, rgba(33, 150, 243, 0.1) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 20%, rgba(33, 150, 243, 0.08) 0%, transparent 50%),
+                    url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" opacity="0.05"><circle fill="white" cx="50" cy="50" r="20"/><path fill="white" d="M30,50 Q50,30 70,50 Q50,70 30,50"/></svg>');
+        background-size: 100px;
+        z-index: -1;
+    }
+
+    .register-container {
+        width: 100%;
+        max-width: 500px;
+        z-index: 1;
+        animation: slideUp 0.8s ease;
+        margin: auto;
+    }
+
+    @@keyframes slideUp {
+        from {opacity: 0; transform: translateY(30px);}
+        to {opacity: 1; transform: translateY(0);}
+    }
+
+    .register-card {
+        background: rgba(255, 255, 255, 0.96);
+        backdrop-filter: blur(12px);
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .register-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+    }
+
+    .register-header {
+        padding: 40px 30px 25px;
+        text-align: center;
+        background: linear-gradient(135deg, var(--patient-primary), var(--patient-dark));
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .register-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                    radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+    }
+
+    .register-icon {
+        font-size: 4rem;
+        margin-bottom: 15px;
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.15);
+        width: 100px;
+        height: 100px;
+        line-height: 100px;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.25);
+        animation: heartbeat 2s ease-in-out infinite;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        transition: transform 0.3s ease;
+    }
+
+    .register-icon:hover {
+        transform: scale(1.05);
+    }
+
+    @@keyframes heartbeat {
+        0%, 100% {transform: scale(1);}
+        25% {transform: scale(1.05);}
+        50% {transform: scale(1);}
+        75% {transform: scale(1.02);}
+    }
+
+    .register-title {
+        font-size: 1.9rem;
+        font-weight: 600;
+        margin-bottom: 8px;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        letter-spacing: 0.5px;
+    }
+
+    .register-subtitle {
+        font-size: 0.95rem;
+        opacity: 0.95;
+        font-weight: 300;
+        max-width: 280px;
+        margin: 0 auto;
+        line-height: 1.5;
+    }
+
+    .register-body {
+        padding: 40px 30px;
+    }
+
+    .register-form-group {
+        margin-bottom: 1.6rem;
+        position: relative;
+    }
+
+    .register-form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #2c3e50;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        letter-spacing: 0.3px;
+    }
+
+    .register-form-label i {
+        color: var(--patient-primary);
+        font-size: 1.1rem;
+    }
+
+    .register-form-control {
+        width: 100%;
+        padding: 16px 20px;
+        border: 2px solid #e1e8ed;
+        border-radius: 12px;
+        font-size: 1rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: white;
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+        height: 56px;
+        line-height: 1.5;
+    }
+
+    .register-form-control:focus {
+        border-color: var(--patient-primary);
+        box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.12), inset 0 1px 3px rgba(0, 0, 0, 0.05);
+        outline: none;
+        transform: translateY(-1px);
+    }
+
+    .register-form-control.textarea {
+        height: auto;
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    .register-btn {
+        width: 100%;
+        padding: 16px;
+        background: linear-gradient(135deg, var(--patient-primary), var(--patient-secondary));
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 1.8rem;
+        letter-spacing: 0.5px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 6px 20px rgba(33, 150, 243, 0.25);
+    }
+
+    .register-btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: 0.5s;
+    }
+
+    .register-btn:hover {
+        background: linear-gradient(135deg, var(--patient-dark), var(--patient-primary));
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(33, 150, 243, 0.35);
+        letter-spacing: 0.7px;
+    }
+
+    .register-btn:hover::before {
+        left: 100%;
+    }
+
+    .register-btn:active {
+        transform: translateY(0);
+        box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+    }
+
+    .register-footer {
+        text-align: center;
+        padding-top: 20px;
+        border-top: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    .register-login-link {
+        color: var(--patient-primary);
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        border-radius: 8px;
+        background: rgba(33, 150, 243, 0.08);
+        border: 1px solid rgba(33, 150, 243, 0.15);
+        margin-bottom: 15px;
+    }
+
+    .register-login-link:hover {
+        background: var(--patient-primary);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2);
+    }
+
+    .register-back-link {
+        color: var(--patient-primary);
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.9rem;
+    }
+
+    .register-back-link:hover {
+        color: var(--patient-dark);
+        text-decoration: underline;
+    }
+
+    .register-welcome-note {
+        background: rgba(227, 242, 253, 0.8);
+        border: 1px solid rgba(33, 150, 243, 0.2);
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 25px;
+        text-align: center;
+        position: relative;
+    }
+
+    .register-welcome-note::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: var(--patient-primary);
+        border-radius: 2px 0 0 2px;
+    }
+
+    .register-welcome-note p {
+        margin: 0;
+        font-size: 0.9rem;
+        color: var(--patient-dark);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        line-height: 1.5;
+    }
+
+    .register-welcome-note i {
+        color: var(--patient-primary);
+        font-size: 1.1rem;
+    }
+
+    .register-field-validation {
+        display: block;
+        margin-top: 5px;
+        font-size: 0.85rem;
+        color: var(--patient-dark);
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-weight: 500;
+    }
+
+    .register-field-validation:before {
+        content: "•";
+        font-weight: bold;
+        color: var(--patient-primary);
+    }
+
+    @@keyframes slideDown {
+        from {transform: translateY(-20px); opacity: 0;}
+        to {transform: translateY(0); opacity: 1;}
+    }
+
+    /* Responsive Design */
+    @@media (max-width: 768px) {
+        .container {
+            padding: 10px;
+            min-height: auto;
+        }
+
+        .register-container {
+            max-width: 100%;
+            margin: 20px auto;
+        }
+
+        .register-header, .register-body {
+            padding: 25px 20px;
+        }
+
+        .register-icon {
+            width: 85px;
+            height: 85px;
+            line-height: 85px;
+            font-size: 3.2rem;
+        }
+
+        .register-title {
+            font-size: 1.5rem;
+        }
+
+        .register-login-link {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+<div class="container">
+    <div class="register-container">
+        <div class="register-card">
+            <div class="register-header">
+                <div class="register-icon">
+                    <i class="bi bi-person-plus-fill"></i>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <span style="font-size: 1.2rem; font-weight: 500; opacity: 0.9;">Silver & Scholar <span style="color: #e3f2fd;">Health Scheduler</span></span>
+                </div>
+                <h2 class="register-title">Patient Registration</h2>
+                <p class="register-subtitle">Join our healthcare community today</p>
             </div>
-            <div class="card-body">
+
+            <div class="register-body">
+                <div class="register-welcome-note">
+                    <p><i class="bi bi-heart-pulse"></i>Create your patient account to access healthcare services</p>
+                </div>
+
                 <form asp-action="Register" method="post">
-                    <div asp-validation-summary="All" class="text-danger"></div>
+                    <div asp-validation-summary="All" class="register-validation-summary"></div>
                     
-                    <div class="form-group mb-3">
-                        <label asp-for="FirstName" class="form-label"></label>
-                        <input asp-for="FirstName" class="form-control" />
-                        <span asp-validation-for="FirstName" class="text-danger"></span>
-                    </div>
+                    <!-- Hidden field to set Role as Patient -->
+                    <input asp-for="Role" type="hidden" value="1" />
                     
-                    <div class="form-group mb-3">
-                        <label asp-for="LastName" class="form-label"></label>
-                        <input asp-for="LastName" class="form-control" />
-                        <span asp-validation-for="LastName" class="text-danger"></span>
-                    </div>
-                    
-                    <div class="form-group mb-3">
-                        <label asp-for="Email" class="form-label"></label>
-                        <input asp-for="Email" class="form-control" />
-                        <span asp-validation-for="Email" class="text-danger"></span>
-                    </div>
-                    
-                    <div class="form-group mb-3">
-                        <label asp-for="Password" class="form-label"></label>
-                        <input asp-for="Password" class="form-control" />
-                        <span asp-validation-for="Password" class="text-danger"></span>
-                    </div>
-                    
-                    <div class="form-group mb-3">
-                        <label asp-for="ConfirmPassword" class="form-label"></label>
-                        <input asp-for="ConfirmPassword" class="form-control" />
-                        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
-                    </div>
-                    
-                    <div class="form-group mb-3">
-                        <label asp-for="Role" class="form-label">User Type</label>
-                        <select asp-for="Role" class="form-control" id="roleSelect">
-                            <option value="">Select Role</option>
-                            <option value="1">Patient</option>
-                            <option value="2">Doctor</option>
-                            <option value="3">Admin</option>
-                        </select>
-                        <span asp-validation-for="Role" class="text-danger"></span>
-                    </div>
-                    
-                    <!-- Doctor specific fields -->
-                    <div id="doctorFields" style="display: none;">
-                        <div class="form-group mb-3">
-                            <label asp-for="Specialization" class="form-label"></label>
-                            <input asp-for="Specialization" class="form-control" />
-                            <span asp-validation-for="Specialization" class="text-danger"></span>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="register-form-group">
+                                <label asp-for="FirstName" class="register-form-label">
+                                    <i class="bi bi-person"></i> First Name
+                                </label>
+                                <input asp-for="FirstName" class="register-form-control" placeholder="Enter your first name" />
+                                <span asp-validation-for="FirstName" class="register-field-validation"></span>
+                            </div>
                         </div>
-                        
-                        <div class="form-group mb-3">
-                            <label asp-for="LicenseNumber" class="form-label"></label>
-                            <input asp-for="LicenseNumber" class="form-control" />
-                            <span asp-validation-for="LicenseNumber" class="text-danger"></span>
+                        <div class="col-md-6">
+                            <div class="register-form-group">
+                                <label asp-for="LastName" class="register-form-label">
+                                    <i class="bi bi-person"></i> Last Name
+                                </label>
+                                <input asp-for="LastName" class="register-form-control" placeholder="Enter your last name" />
+                                <span asp-validation-for="LastName" class="register-field-validation"></span>
+                            </div>
                         </div>
                     </div>
-                    
-                    <!-- Patient specific fields -->
-                    <div id="patientFields" style="display: none;">
-                        <div class="form-group mb-3">
-                            <label asp-for="DateOfBirth" class="form-label"></label>
-                            <input asp-for="DateOfBirth" class="form-control" />
-                            <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+
+                    <div class="register-form-group">
+                        <label asp-for="Email" class="register-form-label">
+                            <i class="bi bi-envelope"></i> Email Address
+                        </label>
+                        <input asp-for="Email" class="register-form-control" type="email" placeholder="Enter your email address" />
+                        <span asp-validation-for="Email" class="register-field-validation"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="register-form-group">
+                                <label asp-for="Password" class="register-form-label">
+                                    <i class="bi bi-lock"></i> Password
+                                </label>
+                                <input asp-for="Password" type="password" class="register-form-control" placeholder="Create a password" />
+                                <span asp-validation-for="Password" class="register-field-validation"></span>
+                            </div>
                         </div>
-                        
-                        <div class="form-group mb-3">
-                            <label asp-for="Address" class="form-label"></label>
-                            <textarea asp-for="Address" class="form-control" rows="3"></textarea>
-                            <span asp-validation-for="Address" class="text-danger"></span>
-                        </div>
-                        
-                        <div class="form-group mb-3">
-                            <label asp-for="EmergencyContact" class="form-label"></label>
-                            <input asp-for="EmergencyContact" class="form-control" />
-                            <span asp-validation-for="EmergencyContact" class="text-danger"></span>
+                        <div class="col-md-6">
+                            <div class="register-form-group">
+                                <label asp-for="ConfirmPassword" class="register-form-label">
+                                    <i class="bi bi-lock-fill"></i> Confirm Password
+                                </label>
+                                <input asp-for="ConfirmPassword" type="password" class="register-form-control" placeholder="Confirm your password" />
+                                <span asp-validation-for="ConfirmPassword" class="register-field-validation"></span>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="form-group">
-                        <button type="submit" class="btn btn-primary w-100">Register</button>
+
+                    <div class="register-form-group">
+                        <label asp-for="DateOfBirth" class="register-form-label">
+                            <i class="bi bi-calendar"></i> Date of Birth
+                        </label>
+                        <input asp-for="DateOfBirth" type="date" class="register-form-control" />
+                        <span asp-validation-for="DateOfBirth" class="register-field-validation"></span>
                     </div>
+
+                    <div class="register-form-group">
+                        <label asp-for="Address" class="register-form-label">
+                            <i class="bi bi-geo-alt"></i> Address
+                        </label>
+                        <textarea asp-for="Address" class="register-form-control textarea" rows="3" placeholder="Enter your full address"></textarea>
+                        <span asp-validation-for="Address" class="register-field-validation"></span>
+                    </div>
+
+                    <div class="register-form-group">
+                        <label asp-for="EmergencyContact" class="register-form-label">
+                            <i class="bi bi-telephone"></i> Emergency Contact
+                        </label>
+                        <input asp-for="EmergencyContact" class="register-form-control" placeholder="Emergency contact number" />
+                        <span asp-validation-for="EmergencyContact" class="register-field-validation"></span>
+                    </div>
+
+                    <button type="submit" class="register-btn">
+                        <i class="bi bi-person-plus"></i> Create Patient Account
+                    </button>
                 </form>
-                
-                <div class="text-center mt-3">
-                    <p>Already have an account? <a asp-action="LoginPatient">Login here</a></p>
+
+                <div class="register-footer">
+                    <a asp-action="LoginPatient" class="register-login-link">
+                        <i class="bi bi-box-arrow-in-right"></i> Already have an account? Sign In
+                    </a>
+                    <br>
+                    <a asp-controller="Home" asp-action="Index" class="register-back-link">
+                        <i class="bi bi-arrow-left"></i> Back to Home
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<script>
-    document.getElementById('roleSelect').addEventListener('change', function() {
-        var role = this.value;
-        var doctorFields = document.getElementById('doctorFields');
-        var patientFields = document.getElementById('patientFields');
-        
-        doctorFields.style.display = 'none';
-        patientFields.style.display = 'none';
-        
-        if (role == '2') { // Doctor
-            doctorFields.style.display = 'block';
-        } else if (role == '1') { // Patient
-            patientFields.style.display = 'block';
-        }
-    });
-</script>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Form interaction effects
+            const registerInputs = document.querySelectorAll('.register-form-control');
+            
+            registerInputs.forEach(input => {
+                // Clear error on focus
+                input.addEventListener('focus', function() {
+                    this.style.borderColor = '';
+                    const errorSpan = this.parentElement.querySelector('.register-field-validation');
+                    if (errorSpan) {
+                        errorSpan.style.opacity = '0.6';
+                    }
+                });
+
+                // Restore error on blur if invalid
+                input.addEventListener('blur', function() {
+                    if (!this.value.trim() && this.hasAttribute('required')) {
+                        this.style.borderColor = 'var(--patient-dark)';
+                        const errorSpan = this.parentElement.querySelector('.register-field-validation');
+                        if (errorSpan) {
+                            errorSpan.style.opacity = '1';
+                        }
+                    }
+                });
+
+                // Add typing effect
+                input.addEventListener('input', function() {
+                    if (this.value.trim()) {
+                        this.style.borderColor = 'var(--patient-primary)';
+                    }
+                });
+
+                // Check if field has error on page load
+                if (input.classList.contains('input-validation-error')) {
+                    input.style.borderColor = 'var(--patient-dark)';
+                }
+            });
+
+            // Button hover effects
+            const registerBtn = document.querySelector('.register-btn');
+            if (registerBtn) {
+                registerBtn.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                });
+                
+                registerBtn.addEventListener('mouseleave', function() {
+                    if (!this.matches(':active')) {
+                        this.style.transform = 'translateY(0)';
+                    }
+                });
+            }
+
+            // Login link animation
+            const registerLoginLink = document.querySelector('.register-login-link');
+            if (registerLoginLink) {
+                registerLoginLink.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                });
+                
+                registerLoginLink.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            }
+
+            // Add gentle card animation on load
+            const registerCard = document.querySelector('.register-card');
+            if (registerCard) {
+                setTimeout(() => {
+                    registerCard.style.transform = 'translateY(-3px)';
+                    setTimeout(() => {
+                        registerCard.style.transform = 'translateY(0)';
+                    }, 150);
+                }, 400);
+            }
+        });
+    </script>
+}
