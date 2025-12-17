@@ -1,0 +1,105 @@
+@model HealthcareApp.Models.ApplicationUser
+@{
+    ViewData["Title"] = "Delete User";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-user-times"></i> Delete @Model.Role</h2>
+    <a asp-action="Users" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Users
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow border-danger">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Confirm Deletion</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning" role="alert">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Warning!</strong> This action cannot be undone. Deleting this @Model.Role.ToString().ToLower() will also remove all associated data.
+                </div>
+
+                <h6>Are you sure you want to delete this @Model.Role.ToString().ToLower()?</h6>
+                
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-4">Name:</dt>
+                            <dd class="col-sm-8">@Model.FirstName @Model.LastName</dd>
+                            
+                            <dt class="col-sm-4">Email:</dt>
+                            <dd class="col-sm-8">@Model.Email</dd>
+                            
+                            <dt class="col-sm-4">Role:</dt>
+                            <dd class="col-sm-8">
+                                <span class="badge bg-@(Model.Role == UserRole.Admin ? "danger" : Model.Role == UserRole.Doctor ? "primary" : "success")">
+                                    @Model.Role
+                                </span>
+                            </dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-5">Phone:</dt>
+                            <dd class="col-sm-7">@(Model.PhoneNumber ?? "Not provided")</dd>
+                            
+                            @if (Model.Role == UserRole.Doctor)
+                            {
+                                <dt class="col-sm-5">Specialization:</dt>
+                                <dd class="col-sm-7">@(Model.Specialization ?? "Not specified")</dd>
+                                
+                                <dt class="col-sm-5">License:</dt>
+                                <dd class="col-sm-7">@(Model.LicenseNumber ?? "Not specified")</dd>
+                            }
+                            else if (Model.Role == UserRole.Patient)
+                            {
+                                <dt class="col-sm-5">Date of Birth:</dt>
+                                <dd class="col-sm-7">@(Model.DateOfBirth?.ToString("MMM dd, yyyy") ?? "Not provided")</dd>
+                                
+                                <dt class="col-sm-5">Address:</dt>
+                                <dd class="col-sm-7">@(Model.Address ?? "Not provided")</dd>
+                            }
+                            
+                            <dt class="col-sm-5">Registered:</dt>
+                            <dd class="col-sm-7">@Model.CreatedAt.ToString("MMM dd, yyyy")</dd>
+                        </dl>
+                    </div>
+                </div>
+
+                <form asp-action="DeleteUser" method="post" class="mt-4">
+                    <input type="hidden" asp-for="Id" />
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a asp-action="Users" class="btn btn-secondary me-md-2">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Delete @Model.Role
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.border-danger {
+    border-color: #dc3545 !important;
+}
+
+.card-header.bg-danger {
+    background-color: #dc3545 !important;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+}
+
+.alert-warning {
+    border-left: 4px solid #ffc107;
+}
+</style>

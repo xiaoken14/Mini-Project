@@ -9,6 +9,9 @@
         <a asp-action="CreateDoctor" class="btn btn-primary">
             <i class="fas fa-user-md"></i> Add Doctor
         </a>
+        <a asp-controller="Email" asp-action="Index" class="btn btn-success">
+            <i class="fas fa-envelope"></i> Send Email
+        </a>
         <a asp-action="Reports" class="btn btn-info">
             <i class="fas fa-chart-bar"></i> Reports
         </a>
@@ -154,7 +157,7 @@
                                         <td>@appointment.Doctor?.FirstName @appointment.Doctor?.LastName</td>
                                         <td>@appointment.AppointmentDate.ToString("MMM dd, yyyy")</td>
                                         <td>
-                                            <span class="badge badge-@(appointment.Status == AppointmentStatus.Confirmed ? "success" : appointment.Status == AppointmentStatus.Pending ? "warning" : "secondary")">
+                                            <span class="badge badge-@(appointment.Status == "Confirmed" ? "success" : appointment.Status == "Booked" ? "warning" : "secondary")">
                                                 @appointment.Status
                                             </span>
                                         </td>

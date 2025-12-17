@@ -115,7 +115,7 @@
                                         <h6 class="mb-1">Dr. @appointment.Doctor.FirstName @appointment.Doctor.LastName</h6>
                                         <p class="mb-1 text-muted small">@appointment.Reason</p>
                                         <div class="d-flex align-items-center">
-                                            <span class="badge bg-@(appointment.Status == AppointmentStatus.Confirmed ? "success" : "warning") me-2">
+                                            <span class="badge bg-@(appointment.Status == "Confirmed" ? "success" : "warning") me-2">
                                                 @appointment.Status
                                             </span>
                                             <small class="text-muted">

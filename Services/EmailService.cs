@@ -1,94 +1,164 @@
 using System.Net;
 using System.Net.Mail;
+using HealthcareApp.Models;
+using Microsoft.Extensions.Configuration;
 
 namespace HealthcareApp.Services
 {
     public class EmailService : IEmailService
     {
-        private readonly ILogger<EmailService> _logger;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<EmailService> _logger;
 
-        public EmailService(ILogger<EmailService> logger, IConfiguration configuration)
+        public EmailService(IConfiguration configuration, ILogger<EmailService> logger)
         {
-            _logger = logger;
             _configuration = configuration;
+            _logger = logger;
         }
 
-        public async Task SendEmailAsync(string email, string subject, string message)
+        public async Task<bool> SendEmailAsync(string toEmail, string subject, string body, bool isBodyHtml = false)
         {
             try
             {
-                // Log the email details for debugging
-                _logger.LogInformation($"Sending email to: {email}");
-                _logger.LogInformation($"Subject: {subject}");
-                
-                // Check if SMTP settings are configured
-                var smtpServer = _configuration["EmailSettings:SmtpServer"];
-                var port = _configuration["EmailSettings:Port"];
-                var username = _configuration["EmailSettings:Username"];
-                var password = _configuration["EmailSettings:Password"];
-                var fromEmail = _configuration["EmailSettings:FromEmail"];
-
-                if (string.IsNullOrEmpty(smtpServer) || smtpServer == "smtp.gmail.com" && 
-                    (string.IsNullOrEmpty(username) || username == "your-email@gmail.com"))
+                var emailModel = new EmailViewModel
                 {
-                    // SMTP not configured, log the email content for development
-                    _logger.LogWarning("SMTP not configured. Email content:");
-                    _logger.LogWarning($"To: {email}");
-                    _logger.LogWarning($"Subject: {subject}");
-                    _logger.LogWarning($"Body: {message}");
-                    
-                    // For development, also write to a file so you can see the OTP
-                    var otpMatch = System.Text.RegularExpressions.Regex.Match(message, @"(\d{6})");
-                    if (otpMatch.Success)
-                    {
-                        var otp = otpMatch.Groups[1].Value;
-                        var filePath = "otp_codes.txt";
-                        var logEntry = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} - Email: {email} - OTP: {otp}\n";
-                        await File.AppendAllTextAsync(filePath, logEntry);
-                        _logger.LogWarning($"OTP {otp} saved to {filePath} for testing");
-                    }
-                    
-                    return;
-                }
-
-                // Send actual email
-                using var smtpClient = new SmtpClient(smtpServer)
-                {
-                    Port = int.Parse(port!),
-                    Credentials = new NetworkCredential(username, password),
-                    EnableSsl = true,
-                };
-
-                using var mailMessage = new MailMessage
-                {
-                    From = new MailAddress(fromEmail!),
+                    Email = toEmail,
                     Subject = subject,
-                    Body = message,
-                    IsBodyHtml = true,
+                    Body = body,
+                    IsBodyHtml = isBodyHtml
                 };
-                
-                mailMessage.To.Add(email);
-                
-                await smtpClient.SendMailAsync(mailMessage);
-                _logger.LogInformation($"Email sent successfully to {email}");
+
+                return await SendEmailAsync(emailModel);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Failed to send email to {email}");
-                
-                // Fallback: save OTP to file for development
-                var otpMatch = System.Text.RegularExpressions.Regex.Match(message, @"(\d{6})");
-                if (otpMatch.Success)
+                _logger.LogError(ex, "Error sending email to {Email}", toEmail);
+                return false;
+            }
+        }
+
+        public async Task<bool> SendEmailAsync(EmailViewModel emailModel)
+        {
+            try
+            {
+                // Read values from appsettings.json file
+                string user = _configuration["Smtp:User"] ?? "";
+                string pass = _configuration["Smtp:Pass"] ?? "";
+                string name = _configuration["Smtp:Name"] ?? "";
+                string host = _configuration["Smtp:Host"] ?? "";
+                int port = _configuration.GetValue<int>("Smtp:Port");
+
+                // Construct email
+                var mail = new MailMessage();
+                mail.To.Add(new MailAddress(emailModel.Email, "My Lovely"));
+                mail.Subject = emailModel.Subject;
+                mail.Body = emailModel.Body;
+                mail.IsBodyHtml = emailModel.IsBodyHtml;
+
+                // Set the from address (sender)
+                mail.From = new MailAddress(user, name);
+
+                // File attachment (optional)
+                if (!string.IsNullOrEmpty(emailModel.AttachmentPath) && File.Exists(emailModel.AttachmentPath))
                 {
-                    var otp = otpMatch.Groups[1].Value;
-                    var filePath = "otp_codes.txt";
-                    var logEntry = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} - Email: {email} - OTP: {otp} (Email failed)\n";
-                    await File.AppendAllTextAsync(filePath, logEntry);
-                    _logger.LogWarning($"Email failed. OTP {otp} saved to {filePath} for testing");
+                    var attachment = new Attachment(emailModel.AttachmentPath);
+                    mail.Attachments.Add(attachment);
                 }
+
+                // Setup the SMTP client with the username (email) and password
+                using var smtp = new SmtpClient
+                {
+                    Host = host,
+                    Port = port,
+                    EnableSsl = true,
+                    Credentials = new NetworkCredential(user, pass)
+                };
+
+                // Send the email asynchronously
+                await smtp.SendMailAsync(mail);
                 
-                throw; // Re-throw to let the controller handle the error
+                _logger.LogInformation("Email sent successfully to {Email}", emailModel.Email);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending email to {Email}", emailModel.Email);
+                return false;
+            }
+        }
+
+        public async Task<bool> SendEmailWithAttachmentAsync(string toEmail, string subject, string body, string attachmentPath, bool isBodyHtml = false)
+        {
+            try
+            {
+                var emailModel = new EmailViewModel
+                {
+                    Email = toEmail,
+                    Subject = subject,
+                    Body = body,
+                    IsBodyHtml = isBodyHtml,
+                    AttachmentPath = attachmentPath
+                };
+
+                return await SendEmailAsync(emailModel);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending email with attachment to {Email}", toEmail);
+                return false;
+            }
+        }
+
+        // Synchronous version - Send() method is synchronous
+        // We need to wait a few seconds for the operation to complete
+        // BUT runtime error message will be shown if the SMTP connection failed
+        // Good for debugging purpose
+        public void SendEmail(EmailViewModel emailModel)
+        {
+            try
+            {
+                // Read values from appsettings.json file
+                string user = _configuration["Smtp:User"] ?? "";
+                string pass = _configuration["Smtp:Pass"] ?? "";
+                string name = _configuration["Smtp:Name"] ?? "";
+                string host = _configuration["Smtp:Host"] ?? "";
+                int port = _configuration.GetValue<int>("Smtp:Port");
+
+                // Construct email
+                var mail = new MailMessage();
+                mail.To.Add(new MailAddress(emailModel.Email, "My Lovely"));
+                mail.Subject = emailModel.Subject;
+                mail.Body = emailModel.Body;
+                mail.IsBodyHtml = emailModel.IsBodyHtml;
+
+                // Set the from address (sender)
+                mail.From = new MailAddress(user, name);
+
+                // File attachment (optional)
+                if (!string.IsNullOrEmpty(emailModel.AttachmentPath) && File.Exists(emailModel.AttachmentPath))
+                {
+                    var attachment = new Attachment(emailModel.AttachmentPath);
+                    mail.Attachments.Add(attachment);
+                }
+
+                // Setup the SMTP client with the username (email) and password
+                using var smtp = new SmtpClient
+                {
+                    Host = host,
+                    Port = port,
+                    EnableSsl = true,
+                    Credentials = new NetworkCredential(user, pass)
+                };
+
+                // Send the email synchronously
+                smtp.Send(mail);
+                
+                _logger.LogInformation("Email sent successfully to {Email}", emailModel.Email);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending email to {Email}", emailModel.Email);
+                throw; // Re-throw for debugging purposes in synchronous version
             }
         }
     }

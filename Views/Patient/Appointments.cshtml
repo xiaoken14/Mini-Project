@@ -38,7 +38,7 @@
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="pending-tab" data-bs-toggle="pill" data-bs-target="#pending" type="button" role="tab">
-                            Pending <span class="badge bg-warning ms-1">@Model.Count(a => a.Status == AppointmentStatus.Pending)</span>
+                            Pending <span class="badge bg-warning ms-1">@Model.Count(a => a.Status == "Booked")</span>
                         </button>
                     </li>
                 </ul>
@@ -64,7 +64,7 @@
 
             <!-- Pending Appointments -->
             <div class="tab-pane fade" id="pending" role="tabpanel">
-                @await Html.PartialAsync("_AppointmentList", Model.Where(a => a.Status == AppointmentStatus.Pending).ToList())
+                @await Html.PartialAsync("_AppointmentList", Model.Where(a => a.Status == "Booked").ToList())
             </div>
         </div>
     }

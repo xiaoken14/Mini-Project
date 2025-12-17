@@ -24,8 +24,8 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     // User settings
     options.User.RequireUniqueEmail = true;
 
-    // Disable email confirmation requirement
-    options.SignIn.RequireConfirmedEmail = false;
+    // Enable email confirmation requirement
+    options.SignIn.RequireConfirmedEmail = true;
 })
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
@@ -34,8 +34,8 @@ builder.Services.AddControllersWithViews();
 
 // Register custom services
 builder.Services.AddScoped<IScheduleService, ScheduleService>();
-
-// Email and OTP services are no longer needed since we disabled email verification
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IOTPService, OTPService>();
 
 var app = builder.Build();
 

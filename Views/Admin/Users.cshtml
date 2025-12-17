@@ -5,9 +5,25 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2><i class="fas fa-user-cog"></i> Manage Users</h2>
-    <a asp-action="Index" class="btn btn-secondary">
-        <i class="fas fa-arrow-left"></i> Back to Dashboard
-    </a>
+    <div class="btn-group" role="group">
+        <a asp-action="Doctors" class="btn btn-primary">
+            <i class="fas fa-user-md"></i> Manage Doctors
+        </a>
+        <a asp-action="Patients" class="btn btn-success">
+            <i class="fas fa-users"></i> Manage Patients
+        </a>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="alert alert-info" role="alert">
+    <i class="fas fa-info-circle"></i>
+    <strong>Info:</strong> You can delete doctors and patients directly from this page, or use the dedicated 
+    <a asp-action="Doctors" class="alert-link">Manage Doctors</a> and 
+    <a asp-action="Patients" class="alert-link">Manage Patients</a> pages for more detailed management options.
+    <br><small class="text-muted">Note: Admin users are protected and cannot be deleted.</small>
 </div>
 
 @if (TempData["Success"] != null)
@@ -97,6 +113,15 @@
                                                     <i class="fas fa-@(user.LockoutEnd == null ? "ban" : "check")"></i>
                                                 </button>
                                             </form>
+                                            <a asp-action="DeleteUser" asp-route-id="@user.Id" class="btn btn-sm btn-outline-danger" title="Delete @user.Role">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary" title="Admin users cannot be deleted">
+                                                <i class="fas fa-shield-alt"></i> Protected
+                                            </span>
                                         }
                                     </div>
                                 </td>

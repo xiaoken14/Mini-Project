@@ -82,10 +82,10 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <span class="badge bg-@(appointment.Status == AppointmentStatus.Confirmed ? "success" : 
-                                                          appointment.Status == AppointmentStatus.Pending ? "warning" : 
-                                                          appointment.Status == AppointmentStatus.Completed ? "info" :
-                                                          appointment.Status == AppointmentStatus.Cancelled ? "danger" : "secondary")">
+                                    <span class="badge bg-@(appointment.Status == "Confirmed" ? "success" : 
+                                                          appointment.Status == "Booked" ? "warning" : 
+                                                          appointment.Status == "Completed" ? "info" :
+                                                          appointment.Status == "Cancelled" ? "danger" : "secondary")">
                                         @appointment.Status
                                     </span>
                                 </td>
@@ -164,10 +164,10 @@
                                 <dd class="col-sm-8">@appointment.AppointmentTime.ToString(@"hh\:mm")</dd>
                                 <dt class="col-sm-4">Status:</dt>
                                 <dd class="col-sm-8">
-                                    <span class="badge bg-@(appointment.Status == AppointmentStatus.Confirmed ? "success" : 
-                                                          appointment.Status == AppointmentStatus.Pending ? "warning" : 
-                                                          appointment.Status == AppointmentStatus.Completed ? "info" :
-                                                          appointment.Status == AppointmentStatus.Cancelled ? "danger" : "secondary")">
+                                    <span class="badge bg-@(appointment.Status == "Confirmed" ? "success" : 
+                                                          appointment.Status == "Booked" ? "warning" : 
+                                                          appointment.Status == "Completed" ? "info" :
+                                                          appointment.Status == "Cancelled" ? "danger" : "secondary")">
                                         @appointment.Status
                                     </span>
                                 </dd>

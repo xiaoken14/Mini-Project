@@ -52,14 +52,14 @@
                         </div>
 
                         <div class="appointment-actions mt-auto">
-                            @if (appointment.AppointmentDate > DateTime.Today && appointment.Status != AppointmentStatus.Cancelled)
+                            @if (appointment.AppointmentDate > DateTime.Today && appointment.Status != "Cancelled")
                             {
                                 <button type="button" class="btn btn-outline-danger btn-sm" onclick="confirmCancel(@appointment.Id)">
                                     <i class="fas fa-times me-1"></i>Cancel
                                 </button>
                             }
                             
-                            @if (appointment.Status == AppointmentStatus.Completed)
+                            @if (appointment.Status == "Completed")
                             {
                                 <button class="btn btn-outline-info btn-sm" disabled>
                                     <i class="fas fa-file-medical me-1"></i>View Report
@@ -86,15 +86,14 @@ else
 }
 
 @functions {
-    private string GetStatusColor(AppointmentStatus status)
+    private string GetStatusColor(string status)
     {
         return status switch
         {
-            AppointmentStatus.Pending => "warning",
-            AppointmentStatus.Confirmed => "success",
-            AppointmentStatus.Completed => "primary",
-            AppointmentStatus.Cancelled => "danger",
-            AppointmentStatus.Rescheduled => "info",
+            "Booked" => "warning",
+            "Confirmed" => "success", 
+            "Completed" => "primary",
+            "Cancelled" => "danger",
             _ => "secondary"
         };
     }

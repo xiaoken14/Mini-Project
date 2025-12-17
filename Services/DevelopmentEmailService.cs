@@ -1,3 +1,5 @@
+using HealthcareApp.Models;
+
 namespace HealthcareApp.Services
 {
     public class DevelopmentEmailService : IEmailService
@@ -10,28 +12,76 @@ namespace HealthcareApp.Services
             _logger = logger;
         }
 
-        public async Task SendEmailAsync(string email, string subject, string message)
+        public async Task<bool> SendEmailAsync(string toEmail, string subject, string body, bool isBodyHtml = false)
         {
-            // Extract OTP from message
-            var otpMatch = System.Text.RegularExpressions.Regex.Match(message, @"(\d{6})");
-            if (otpMatch.Success)
+            try
             {
-                var otp = otpMatch.Groups[1].Value;
+                // Extract OTP from message
+                var otpMatch = System.Text.RegularExpressions.Regex.Match(body, @"(\d{6})");
+                if (otpMatch.Success)
+                {
+                    var otp = otpMatch.Groups[1].Value;
+                    
+                    // Store OTP for retrieval
+                    _otpStorage[toEmail] = otp;
+                    
+                    _logger.LogWarning($"=== DEVELOPMENT MODE ===");
+                    _logger.LogWarning($"OTP for {toEmail}: {otp}");
+                    _logger.LogWarning($"======================");
+                    
+                    // Also write to file
+                    var filePath = "otp_codes.txt";
+                    var logEntry = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} - Email: {toEmail} - OTP: {otp}\n";
+                    await File.AppendAllTextAsync(filePath, logEntry);
+                }
+                else
+                {
+                    // Log regular email
+                    _logger.LogWarning($"=== DEVELOPMENT EMAIL ===");
+                    _logger.LogWarning($"To: {toEmail}");
+                    _logger.LogWarning($"Subject: {subject}");
+                    _logger.LogWarning($"Body: {body}");
+                    _logger.LogWarning($"HTML: {isBodyHtml}");
+                    _logger.LogWarning($"========================");
+                }
                 
-                // Store OTP for retrieval
-                _otpStorage[email] = otp;
-                
-                _logger.LogWarning($"=== DEVELOPMENT MODE ===");
-                _logger.LogWarning($"OTP for {email}: {otp}");
-                _logger.LogWarning($"======================");
-                
-                // Also write to file
-                var filePath = "otp_codes.txt";
-                var logEntry = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} - Email: {email} - OTP: {otp}\n";
-                await File.AppendAllTextAsync(filePath, logEntry);
+                await Task.CompletedTask;
+                return true;
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in development email service");
+                return false;
+            }
+        }
+
+        public async Task<bool> SendEmailAsync(EmailViewModel emailModel)
+        {
+            return await SendEmailAsync(emailModel.Email, emailModel.Subject, emailModel.Body, emailModel.IsBodyHtml);
+        }
+
+        public async Task<bool> SendEmailWithAttachmentAsync(string toEmail, string subject, string body, string attachmentPath, bool isBodyHtml = false)
+        {
+            _logger.LogWarning($"=== DEVELOPMENT EMAIL WITH ATTACHMENT ===");
+            _logger.LogWarning($"To: {toEmail}");
+            _logger.LogWarning($"Subject: {subject}");
+            _logger.LogWarning($"Body: {body}");
+            _logger.LogWarning($"Attachment: {attachmentPath}");
+            _logger.LogWarning($"HTML: {isBodyHtml}");
+            _logger.LogWarning($"========================================");
             
             await Task.CompletedTask;
+            return true;
+        }
+
+        public void SendEmail(EmailViewModel emailModel)
+        {
+            _logger.LogWarning($"=== DEVELOPMENT EMAIL (SYNC) ===");
+            _logger.LogWarning($"To: {emailModel.Email}");
+            _logger.LogWarning($"Subject: {emailModel.Subject}");
+            _logger.LogWarning($"Body: {emailModel.Body}");
+            _logger.LogWarning($"HTML: {emailModel.IsBodyHtml}");
+            _logger.LogWarning($"===============================");
         }
 
         public static string? GetOTPForEmail(string email)

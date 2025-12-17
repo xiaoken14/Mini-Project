@@ -96,6 +96,9 @@
                                                 <i class="fas fa-@(patient.LockoutEnd == null ? "ban" : "check")"></i>
                                             </button>
                                         </form>
+                                        <a asp-action="DeletePatient" asp-route-id="@patient.Id" class="btn btn-sm btn-outline-danger" title="Delete Patient">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
                                     </div>
                                 </td>
                             </tr>
