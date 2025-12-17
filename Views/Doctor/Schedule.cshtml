@@ -1,0 +1,831 @@
+@model HealthcareApp.Models.DoctorScheduleViewModel
+@{
+    ViewData["Title"] = "Manage Schedule";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h4 class="mb-1">
+                                <i class="fas fa-calendar-week me-2"></i>Weekly Schedule - Dr. @(Model.DoctorName ?? "Doctor")
+                            </h4>
+                            <span class="badge bg-info">@(Model.Specialization ?? "General Practice")</span>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <div class="btn-group me-2" role="group">
+                                <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#templateModal">
+                                    <i class="fas fa-save me-1"></i>Save Template
+                                </button>
+                                <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#loadTemplateModal">
+                                    <i class="fas fa-folder-open me-1"></i>Load Template
+                                </button>
+                                <button class="btn btn-warning btn-sm" id="bulkOperationsBtn">
+                                    <i class="fas fa-edit me-1"></i>Bulk Edit
+                                </button>
+                            </div>
+                            <div class="btn-group" role="group">
+                                <a href="@Url.Action("MonthlyView")" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-calendar me-1"></i>Monthly View
+                                </a>
+                                <a href="@Url.Action("DailyView")" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-eye me-1"></i>Daily View
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @Html.AntiForgeryToken()
+                    
+                    @if (ViewBag.ErrorMessage != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>@ViewBag.ErrorMessage
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <div class="row">
+                        @for (int i = 0; i < 7; i++)
+                        {
+                            var dayOfWeek = (DayOfWeek)i;
+                            var schedule = Model?.WeeklySchedule?.FirstOrDefault(s => s.DayOfWeek == dayOfWeek);
+                            var isWeekend = dayOfWeek == DayOfWeek.Saturday || dayOfWeek == DayOfWeek.Sunday;
+
+                            <div class="col-lg-6 col-xl-4 mb-4">
+                                <div class="card h-100 @(isWeekend ? "border-warning" : "")">
+                                    <div class="card-header @(isWeekend ? "bg-warning bg-opacity-10" : "bg-light") d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-0 fw-bold">
+                                                @dayOfWeek.ToString()
+                                                @if (isWeekend)
+                                                {
+                                                    <span class="badge bg-warning text-dark ms-2">Weekend</span>
+                                                }
+                                            </h6>
+                                            @if (schedule != null && schedule.IsAvailable)
+                                            {
+                                                <small class="text-muted">
+                                                    @{
+                                                        try 
+                                                        {
+                                                            var startTime = string.Format("{0:D2}:{1:D2}", schedule.StartTime.Hours, schedule.StartTime.Minutes);
+                                                            var endTime = string.Format("{0:D2}:{1:D2}", schedule.EndTime.Hours, schedule.EndTime.Minutes);
+                                                            <text>@startTime - @endTime (@schedule.SlotDurationMinutes min slots)</text>
+                                                        } 
+                                                        catch 
+                                                        {
+                                                            <text>Invalid time format</text>
+                                                        }
+                                                    }
+                                                </small>
+                                            }
+                                        </div>
+                                        <div class="btn-group btn-group-sm">
+                                            @if (schedule != null)
+                                            {
+                                                <button class="btn btn-outline-secondary btn-copy-schedule" data-day="@((int)dayOfWeek)"
+                                                        title="Copy to other days">
+                                                    <i class="fas fa-copy"></i>
+                                                </button>
+                                                <button class="btn btn-outline-danger btn-delete-schedule" data-day="@((int)dayOfWeek)"
+                                                        data-day-name="@dayOfWeek.ToString()"
+                                                        title="Delete schedule">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <form class="schedule-form" data-day="@((int)dayOfWeek)">
+                                            <div class="row g-2">
+                                                <div class="col-12">
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input" type="checkbox" name="IsAvailable" @(schedule?.IsAvailable == true ? "checked" : "")>
+                                                        <label class="form-check-label fw-semibold">Available</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <label class="form-label small">Start Time</label>
+                                                    <input type="time" class="form-control form-control-sm" name="StartTime" 
+                                                           value="@(schedule != null ? string.Format("{0:D2}:{1:D2}", schedule.StartTime.Hours, schedule.StartTime.Minutes) : "09:00")">
+                                                </div>
+                                                <div class="col-6">
+                                                    <label class="form-label small">End Time</label>
+                                                    <input type="time" class="form-control form-control-sm" name="EndTime" 
+                                                           value="@(schedule != null ? string.Format("{0:D2}:{1:D2}", schedule.EndTime.Hours, schedule.EndTime.Minutes) : "17:00")">
+                                                </div>
+                                                <div class="col-6">
+                                                    <label class="form-label small">Break Start</label>
+                                                    <input type="time" class="form-control form-control-sm" name="BreakStartTime" 
+                                                           value="@(schedule?.BreakStartTime != null ? string.Format("{0:D2}:{1:D2}", schedule.BreakStartTime.Value.Hours, schedule.BreakStartTime.Value.Minutes) : "12:00")">
+                                                </div>
+                                                <div class="col-6">
+                                                    <label class="form-label small">Break End</label>
+                                                    <input type="time" class="form-control form-control-sm" name="BreakEndTime" 
+                                                           value="@(schedule?.BreakEndTime != null ? string.Format("{0:D2}:{1:D2}", schedule.BreakEndTime.Value.Hours, schedule.BreakEndTime.Value.Minutes) : "13:00")">
+                                                </div>
+                                                <div class="col-12">
+                                                    <label class="form-label small">Slot Duration</label>
+                                                    <select class="form-select form-select-sm" name="SlotDurationMinutes">
+                                                        <option value="15" selected="@(schedule?.SlotDurationMinutes == 15)">15 minutes</option>
+                                                        <option value="30" selected="@(schedule?.SlotDurationMinutes == 30 || schedule?.SlotDurationMinutes == null)">30 minutes</option>
+                                                        <option value="45" selected="@(schedule?.SlotDurationMinutes == 45)">45 minutes</option>
+                                                        <option value="60" selected="@(schedule?.SlotDurationMinutes == 60)">60 minutes</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <input type="hidden" name="DayOfWeek" value="@((int)dayOfWeek)">
+                                            <div class="mt-3 d-grid gap-2">
+                                                <button type="submit" class="btn btn-primary btn-sm">
+                                                    <i class="fas fa-save me-1"></i>Update Schedule
+                                                </button>
+                                                @if (schedule != null)
+                                                {
+                                                    <div class="btn-group btn-group-sm">
+                                                        <button type="button" class="btn btn-outline-info btn-preset" data-preset="morning">Morning (9-12)</button>
+                                                        <button type="button" class="btn btn-outline-info btn-preset" data-preset="afternoon">Afternoon (14-18)</button>
+                                                        <button type="button" class="btn btn-outline-info btn-preset" data-preset="fullday">Full Day (9-17)</button>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </form>
+                                        @if (schedule != null)
+                                        {
+                                            <div class="mt-2 text-muted small">
+                                                <i class="fas fa-clock me-1"></i>Last updated: @schedule.UpdatedAt.ToString("MMM dd, HH:mm")
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Schedule Statistics -->
+                    <div class="row mt-4">
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-chart-bar me-2"></i>Weekly Schedule Summary
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row text-center">
+                                        <div class="col-md-3 col-6 mb-3">
+                                            <div class="stat-item">
+                                                <div class="stat-number text-primary" id="totalWorkingDays">
+                                                    @(Model?.WeeklySchedule?.Count(s => s.IsAvailable) ?? 0)
+                                                </div>
+                                                <div class="stat-label">Working Days</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 col-6 mb-3">
+                                            <div class="stat-item">
+                                                <div class="stat-number text-success" id="totalHours">
+                                                    @{
+                                                        var totalMinutes = Model?.WeeklySchedule?.Where(s => s.IsAvailable)?.Sum(s => 
+                                                            (s.EndTime - s.StartTime).TotalMinutes - 
+                                                            (s.BreakEndTime.HasValue && s.BreakStartTime.HasValue ? 
+                                                                (s.BreakEndTime.Value - s.BreakStartTime.Value).TotalMinutes : 0)) ?? 0;
+                                                        var totalHours = Math.Round(totalMinutes / 60, 1);
+                                                    }
+                                                    @totalHours
+                                                </div>
+                                                <div class="stat-label">Hours/Week</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 col-6 mb-3">
+                                            <div class="stat-item">
+                                                <div class="stat-number text-info" id="avgSlotDuration">
+                                                    @{
+                                                        var avgDuration = Model?.WeeklySchedule?.Where(s => s.IsAvailable)?.Any() == true
+                                                            ? Model.WeeklySchedule.Where(s => s.IsAvailable).Average(s => s.SlotDurationMinutes)
+                                                            : 0;
+                                                    }
+                                                    @Math.Round(avgDuration, 0)
+                                                </div>
+                                                <div class="stat-label">Avg Slot (min)</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 col-6 mb-3">
+                                            <div class="stat-item">
+                                                <div class="stat-number text-warning" id="weekendDays">
+                                                    @(Model?.WeeklySchedule?.Count(s => s.IsAvailable && (s.DayOfWeek == DayOfWeek.Saturday || s.DayOfWeek == DayOfWeek.Sunday)) ?? 0)
+                                                </div>
+                                                <div class="stat-label">Weekend Days</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-info-circle me-2"></i>Quick Tips
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <ul class="list-unstyled small mb-0">
+                                        <li class="mb-2">
+                                            <i class="fas fa-lightbulb text-warning me-2"></i>Use preset buttons for quick setup
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fas fa-copy text-info me-2"></i>Copy schedules between days
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fas fa-save text-success me-2"></i>Save templates for reuse
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fas fa-trash text-danger me-2"></i>Delete unwanted schedules
+                                        </li>
+                                        <li class="mb-2">
+                                            <i class="fas fa-edit text-primary me-2"></i>Use bulk edit for multiple days
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Save Template Modal -->
+<div class="modal fade" id="templateModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-save me-2"></i>Save Schedule Template
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="saveTemplateForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Template Name</label>
+                        <input type="text" class="form-control" name="templateName" required 
+                               placeholder="e.g., Standard Week, Holiday Schedule">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description (Optional)</label>
+                        <textarea class="form-control" name="description" rows="3" 
+                                  placeholder="Brief description of this schedule template"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save me-1"></i>Save Template
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Load Template Modal -->
+<div class="modal fade" id="loadTemplateModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-folder-open me-2"></i>Load Schedule Template
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="templatesList">
+                    <div class="text-center">
+                        <i class="fas fa-spinner fa-spin fa-2x text-muted"></i>
+                        <p class="text-muted mt-2">Loading templates...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Copy Schedule Modal -->
+<div class="modal fade" id="copyScheduleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-copy me-2"></i>Copy Schedule
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Copy <strong id="sourceDayName"></strong> schedule to:</p>
+                <div class="row">
+                    <div class="col-6">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="0" id="copyToSunday">
+                            <label class="form-check-label" for="copyToSunday">Sunday</label>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="1" id="copyToMonday">
+                            <label class="form-check-label" for="copyToMonday">Monday</label>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="2" id="copyToTuesday">
+                            <label class="form-check-label" for="copyToTuesday">Tuesday</label>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="3" id="copyToWednesday">
+                            <label class="form-check-label" for="copyToWednesday">Wednesday</label>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="4" id="copyToThursday">
+                            <label class="form-check-label" for="copyToThursday">Thursday</label>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="5" id="copyToFriday">
+                            <label class="form-check-label" for="copyToFriday">Friday</label>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="6" id="copyToSaturday">
+                            <label class="form-check-label" for="copyToSaturday">Saturday</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmCopySchedule">
+                    <i class="fas fa-copy me-1"></i>Copy Schedule
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Schedule form submission
+            $('.schedule-form').on('submit', function(e) {
+                e.preventDefault();
+                const form = $(this);
+                const dayOfWeek = form.data('day');
+                const submitBtn = form.find('button[type="submit"]');
+                const originalText = submitBtn.html();
+
+                // Disable button and show loading
+                submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Updating...');
+
+                const formData = {
+                    DayOfWeek: parseInt(form.find('input[name="DayOfWeek"]').val()),
+                    IsAvailable: form.find('input[name="IsAvailable"]').is(':checked'),
+                    StartTime: form.find('input[name="StartTime"]').val() + ':00',
+                    EndTime: form.find('input[name="EndTime"]').val() + ':00',
+                    BreakStartTime: form.find('input[name="BreakStartTime"]').val() ? form.find('input[name="BreakStartTime"]').val() + ':00' : null,
+                    BreakEndTime: form.find('input[name="BreakEndTime"]').val() ? form.find('input[name="BreakEndTime"]').val() + ':00' : null,
+                    SlotDurationMinutes: parseInt(form.find('select[name="SlotDurationMinutes"]').val())
+                };
+
+                // Add CSRF token
+                formData['__RequestVerificationToken'] = $('input[name="__RequestVerificationToken"]').val();
+
+                $.ajax({
+                    url: '@Url.Action("UpdateSchedule")',
+                    type: 'POST',
+                    data: formData,
+                    success: function(response) {
+                        if (response.success) {
+                            submitBtn.removeClass('btn-primary').addClass('btn-success').html('<i class="fas fa-check me-1"></i>Updated!');
+                            showToast('Success', response.message, 'success');
+                            updateStatistics();
+                            setTimeout(function() {
+                                submitBtn.removeClass('btn-success').addClass('btn-primary').html(originalText).prop('disabled', false);
+                            }, 2000);
+                        }
+                    },
+                    error: function(xhr) {
+                        submitBtn.removeClass('btn-primary').addClass('btn-danger').html('<i class="fas fa-times me-1"></i>Error').prop('disabled', false);
+                        showToast('Error', 'Failed to update schedule. Please try again.', 'error');
+                        setTimeout(function() {
+                            submitBtn.removeClass('btn-danger').addClass('btn-primary').html(originalText);
+                        }, 3000);
+                    }
+                });
+            });
+
+            // Delete schedule
+            $('.btn-delete-schedule').on('click', function() {
+                const dayOfWeek = $(this).data('day');
+                const dayName = $(this).data('day-name');
+
+                if (confirm(`Are you sure you want to delete the schedule for ${dayName}?`)) {
+                    $.ajax({
+                        url: '@Url.Action("DeleteSchedule")',
+                        type: 'POST',
+                        data: { 
+                            dayOfWeek: dayOfWeek,
+                            '__RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                showToast('Success', response.message, 'success');
+                                location.reload();
+                            } else {
+                                showToast('Error', response.message, 'error');
+                            }
+                        },
+                        error: function() {
+                            showToast('Error', 'Failed to delete schedule', 'error');
+                        }
+                    });
+                }
+            });
+
+            // Copy schedule
+            let sourceDayForCopy = null;
+            $('.btn-copy-schedule').on('click', function() {
+                sourceDayForCopy = $(this).data('day');
+                const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                $('#sourceDayName').text(dayNames[sourceDayForCopy]);
+
+                // Uncheck all and disable source day
+                $('#copyScheduleModal input[type="checkbox"]').prop('checked', false).prop('disabled', false);
+                $(`#copyScheduleModal input[value="${sourceDayForCopy}"]`).prop('disabled', true);
+                $('#copyScheduleModal').modal('show');
+            });
+
+            // Confirm copy schedule
+            $('#confirmCopySchedule').on('click', function() {
+                const targetDays = [];
+                $('#copyScheduleModal input[type="checkbox"]:checked').each(function() {
+                    targetDays.push(parseInt($(this).val()));
+                });
+
+                if (targetDays.length === 0) {
+                    showToast('Warning', 'Please select at least one day to copy to', 'error');
+                    return;
+                }
+
+                $.ajax({
+                    url: '@Url.Action("CopySchedule")',
+                    type: 'POST',
+                    data: { 
+                        sourceDayOfWeek: sourceDayForCopy,
+                        targetDays: targetDays,
+                        '__RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            showToast('Success', response.message, 'success');
+                            $('#copyScheduleModal').modal('hide');
+                            location.reload();
+                        } else {
+                            showToast('Error', response.message, 'error');
+                        }
+                    },
+                    error: function() {
+                        showToast('Error', 'Failed to copy schedule', 'error');
+                    }
+                });
+            });
+
+            // Preset buttons
+            $('.btn-preset').on('click', function() {
+                const preset = $(this).data('preset');
+                const form = $(this).closest('.schedule-form');
+
+                switch(preset) {
+                    case 'morning':
+                        form.find('input[name="StartTime"]').val('09:00');
+                        form.find('input[name="EndTime"]').val('12:00');
+                        form.find('input[name="BreakStartTime"]').val('');
+                        form.find('input[name="BreakEndTime"]').val('');
+                        break;
+                    case 'afternoon':
+                        form.find('input[name="StartTime"]').val('14:00');
+                        form.find('input[name="EndTime"]').val('18:00');
+                        form.find('input[name="BreakStartTime"]').val('');
+                        form.find('input[name="BreakEndTime"]').val('');
+                        break;
+                    case 'fullday':
+                        form.find('input[name="StartTime"]').val('09:00');
+                        form.find('input[name="EndTime"]').val('17:00');
+                        form.find('input[name="BreakStartTime"]').val('12:00');
+                        form.find('input[name="BreakEndTime"]').val('13:00');
+                        break;
+                }
+                form.find('input[name="IsAvailable"]').prop('checked', true).trigger('change');
+            });
+
+            // Save template
+            $('#saveTemplateForm').on('submit', function(e) {
+                e.preventDefault();
+                const templateName = $(this).find('input[name="templateName"]').val();
+                const description = $(this).find('textarea[name="description"]').val();
+
+                $.ajax({
+                    url: '@Url.Action("SaveTemplate")',
+                    type: 'POST',
+                    data: { 
+                        templateName: templateName,
+                        description: description,
+                        '__RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            showToast('Success', response.message, 'success');
+                            $('#templateModal').modal('hide');
+                            $('#saveTemplateForm')[0].reset();
+                        } else {
+                            showToast('Error', response.message, 'error');
+                        }
+                    },
+                    error: function() {
+                        showToast('Error', 'Failed to save template', 'error');
+                    }
+                });
+            });
+
+            // Load templates
+            $('#loadTemplateModal').on('show.bs.modal', function() {
+                loadTemplates();
+            });
+
+            // Toggle form fields based on availability
+            $('input[name="IsAvailable"]').on('change', function() {
+                const form = $(this).closest('.schedule-form');
+                const isAvailable = $(this).is(':checked');
+                form.find('input[type="time"], select').prop('disabled', !isAvailable);
+                
+                if (!isAvailable) {
+                    form.closest('.card').addClass('opacity-50');
+                } else {
+                    form.closest('.card').removeClass('opacity-50');
+                }
+            });
+
+            // Initialize form states
+            $('input[name="IsAvailable"]').trigger('change');
+        });
+
+        function loadTemplates() {
+            $.ajax({
+                url: '@Url.Action("GetTemplates")',
+                type: 'GET',
+                success: function(templates) {
+                    let html = '';
+                    if (templates.length === 0) {
+                        html = '<div class="text-center text-muted"><p>No templates saved yet.</p></div>';
+                    } else {
+                        templates.forEach(function(template) {
+                            html += `
+                                <div class="card mb-2">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h6 class="card-title mb-1">${template.name}</h6>
+                                                <p class="card-text small text-muted">${template.description || 'No description'}</p>
+                                            </div>
+                                            <button class="btn btn-primary btn-sm" onclick="applyTemplate(${template.id})">
+                                                <i class="fas fa-download me-1"></i>Apply
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+                    $('#templatesList').html(html);
+                },
+                error: function() {
+                    $('#templatesList').html('<div class="text-center text-danger"><p>Failed to load templates.</p></div>');
+                }
+            });
+        }
+
+        function applyTemplate(templateId) {
+            if (confirm('This will replace your current schedule. Are you sure?')) {
+                $.ajax({
+                    url: '@Url.Action("ApplyTemplate")',
+                    type: 'POST',
+                    data: { 
+                        templateId: templateId,
+                        '__RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            showToast('Success', response.message, 'success');
+                            $('#loadTemplateModal').modal('hide');
+                            location.reload();
+                        } else {
+                            showToast('Error', response.message, 'error');
+                        }
+                    },
+                    error: function() {
+                        showToast('Error', 'Failed to apply template', 'error');
+                    }
+                });
+            }
+        }
+
+        function updateStatistics() {
+            // This would typically make an AJAX call to get updated stats
+            // For now, we'll just reload the page to show updated stats
+            setTimeout(function() {
+                location.reload();
+            }, 2500);
+        }
+
+        function showToast(title, message, type) {
+            // Simple toast notification - you can replace with your preferred toast library
+            const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+            const toast = $(`
+                <div class="alert ${alertClass} alert-dismissible fade show position-fixed" style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+                    <strong>${title}:</strong> ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `);
+            $('body').append(toast);
+            setTimeout(function() {
+                toast.alert('close');
+            }, 5000);
+        }
+    </script>
+}
+
+@section Styles {
+    <style>
+        :root {
+            --doctor-primary: #388e3c;
+            --doctor-secondary: #4caf50;
+        }
+
+        .card {
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .form-control-sm, .form-select-sm {
+            font-size: 0.875rem;
+        }
+
+        .opacity-50 {
+            opacity: 0.5;
+        }
+
+        .btn-sm {
+            font-size: 0.875rem;
+        }
+
+        .alert {
+            border-radius: 8px;
+        }
+
+        .badge {
+            font-size: 0.75rem;
+        }
+
+        .stat-item {
+            padding: 10px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+
+        .stat-item:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+
+        .btn-preset {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+        }
+
+        .card-header .btn-group-sm .btn {
+            padding: 0.125rem 0.25rem;
+            font-size: 0.75rem;
+        }
+
+        .schedule-form .card {
+            transition: all 0.3s ease;
+        }
+
+        .schedule-form .card:hover {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .modal-content {
+            border-radius: 15px;
+        }
+
+        .modal-header {
+            border-bottom: 1px solid #dee2e6;
+            border-radius: 15px 15px 0 0;
+        }
+
+        .form-check-input:checked {
+            background-color: var(--doctor-primary);
+            border-color: var(--doctor-primary);
+        }
+
+        .btn-group .btn {
+            border-radius: 0;
+        }
+
+        .btn-group .btn:first-child {
+            border-top-left-radius: 0.375rem;
+            border-bottom-left-radius: 0.375rem;
+        }
+
+        .btn-group .btn:last-child {
+            border-top-right-radius: 0.375rem;
+            border-bottom-right-radius: 0.375rem;
+        }
+
+        .bg-opacity-10 {
+            background-color: rgba(var(--bs-warning-rgb), 0.1) !important;
+        }
+
+        .border-warning {
+            border-color: #ffc107 !important;
+        }
+
+        .text-dark {
+            color: #212529 !important;
+        }
+
+        .fw-bold {
+            font-weight: 700 !important;
+        }
+
+        .fw-semibold {
+            font-weight: 600 !important;
+        }
+
+        .small {
+            font-size: 0.875em;
+        }
+
+        .form-switch .form-check-input {
+            width: 2em;
+            margin-left: -2.5em;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='rgba%280,0,0,0.25%29'/%3e%3c/svg%3e");
+            background-position: left center;
+            background-repeat: no-repeat;
+            background-size: contain;
+            border-radius: 2em;
+        }
+
+        .form-switch .form-check-input:checked {
+            background-position: right center;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e");
+        }
+
+        .form-switch .form-check-input:focus {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='rgba%280,0,0,0.25%29'/%3e%3c/svg%3e");
+        }
+
+        .form-switch .form-check-input:checked:focus {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%23fff'/%3e%3c/svg%3e");
+        }
+    </style>
+}

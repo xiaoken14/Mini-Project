@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using HealthcareApp.Data;
 using HealthcareApp.Models;
+using HealthcareApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,15 +14,16 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
-    // Password settings - relaxed for easier admin access
-    options.Password.RequireDigit = true;
+    // Password settings - Make them less restrictive for simple passwords
+    options.Password.RequireDigit = false;
     options.Password.RequireLowercase = false;
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequireUppercase = false;
-    options.Password.RequiredLength = 6;
-    
+    options.Password.RequiredLength = 3;
+
     // User settings
     options.User.RequireUniqueEmail = true;
+
     // Disable email confirmation requirement
     options.SignIn.RequireConfirmedEmail = false;
 })
@@ -29,6 +31,9 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddDefaultTokenProviders();
 
 builder.Services.AddControllersWithViews();
+
+// Register custom services
+builder.Services.AddScoped<IScheduleService, ScheduleService>();
 
 // Email and OTP services are no longer needed since we disabled email verification
 
@@ -58,13 +63,13 @@ using (var scope = app.Services.CreateScope())
         var context = services.GetRequiredService<ApplicationDbContext>();
         var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
         var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
-        
+
         // Ensure database is created
         context.Database.EnsureCreated();
-        
+
         // Create roles
         await CreateRoles(roleManager);
-        
+
         // Create default users
         await CreateAdminUser(userManager);
         await CreateDoctorUser(userManager);
@@ -86,7 +91,7 @@ app.Run();
 async Task CreateRoles(RoleManager<IdentityRole> roleManager)
 {
     string[] roles = { "Admin", "Doctor", "Patient" };
-    
+
     foreach (var role in roles)
     {
         if (!await roleManager.RoleExistsAsync(role))
@@ -98,9 +103,9 @@ async Task CreateRoles(RoleManager<IdentityRole> roleManager)
 
 async Task CreateAdminUser(UserManager<ApplicationUser> userManager)
 {
-    string email = "simweikian729@gmail.com";
-    string password = "1234567890";
-    
+    string email = "abc12345@gmail.com";
+    string password = "abc12345";
+
     var adminUser = await userManager.FindByEmailAsync(email);
     if (adminUser == null)
     {
@@ -108,26 +113,27 @@ async Task CreateAdminUser(UserManager<ApplicationUser> userManager)
         {
             UserName = email,
             Email = email,
-            EmailConfirmed = true,
-            FirstName = "Sim Wei",
-            LastName = "Kian",
-            Role = UserRole.Admin,
-            CreatedAt = DateTime.UtcNow
+            EmailConfirmed = true
         };
-        
+
         var result = await userManager.CreateAsync(user, password);
         if (result.Succeeded)
         {
             await userManager.AddToRoleAsync(user, "Admin");
+            Console.WriteLine($"✅ Admin user created successfully: {email}");
+        }
+        else
+        {
+            Console.WriteLine($"❌ Failed to create admin user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
         }
     }
 }
 
 async Task CreateDoctorUser(UserManager<ApplicationUser> userManager)
 {
-    string email = "doctor@healthcare.com";
-    string password = "Doctor@123";
-    
+    string email = "abc123@gmail.com";
+    string password = "abc123";
+
     var doctorUser = await userManager.FindByEmailAsync(email);
     if (doctorUser == null)
     {
@@ -138,16 +144,29 @@ async Task CreateDoctorUser(UserManager<ApplicationUser> userManager)
             EmailConfirmed = true,
             FirstName = "Dr. John",
             LastName = "Smith",
-            Role = UserRole.Doctor,
-            Specialization = "General Medicine",
-            LicenseNumber = "MD123456",
-            CreatedAt = DateTime.UtcNow
+            Specialization = "General Practice"
         };
-        
+
         var result = await userManager.CreateAsync(user, password);
         if (result.Succeeded)
         {
             await userManager.AddToRoleAsync(user, "Doctor");
+            Console.WriteLine($"✅ Doctor user created successfully: {email}");
+        }
+        else
+        {
+            Console.WriteLine($"❌ Failed to create doctor user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+        }
+    }
+    else
+    {
+        // Update existing doctor with missing info
+        if (string.IsNullOrEmpty(doctorUser.FirstName))
+        {
+            doctorUser.FirstName = "Dr. John";
+            doctorUser.LastName = "Smith";
+            doctorUser.Specialization = "General Practice";
+            await userManager.UpdateAsync(doctorUser);
         }
     }
 }

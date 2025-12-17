@@ -9,28 +9,26 @@
             <p class="lead">Manage your patients and appointments.</p>
         </div>
     </div>
-    
+
     <div class="row mt-4">
         <div class="col-md-4">
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">Today's Appointments</h5>
                     <p class="card-text">View your schedule for today.</p>
-                    <a href="#" class="btn btn-primary">View Schedule</a>
+                    <a href="@Url.Action("DailyView")" class="btn btn-primary">View Schedule</a>
                 </div>
             </div>
         </div>
-        
         <div class="col-md-4">
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">Patient Records</h5>
                     <p class="card-text">Access and update patient information.</p>
-                    <a href="#" class="btn btn-primary">View Patients</a>
+                    <a href="@Url.Action("Patients")" class="btn btn-primary">View Patients</a>
                 </div>
             </div>
         </div>
-        
         <div class="col-md-4">
             <div class="card">
                 <div class="card-body">
@@ -41,7 +39,37 @@
             </div>
         </div>
     </div>
-    
+
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Weekly Schedule</h5>
+                    <p class="card-text">Manage your weekly availability.</p>
+                    <a href="@Url.Action("Schedule")" class="btn btn-primary">Manage Schedule</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Monthly View</h5>
+                    <p class="card-text">View your monthly calendar.</p>
+                    <a href="@Url.Action("MonthlyView")" class="btn btn-primary">View Calendar</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Appointments</h5>
+                    <p class="card-text">Manage all appointments.</p>
+                    <a href="@Url.Action("Appointments")" class="btn btn-primary">View Appointments</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row mt-4">
         <div class="col-12">
             <div class="card">

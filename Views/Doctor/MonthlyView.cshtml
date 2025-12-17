@@ -1,0 +1,1102 @@
+@model HealthcareApp.Models.MonthlyScheduleViewModel
+@{
+    ViewData["Title"] = "Monthly Schedule";
+}
+
+<div class="container-fluid">
+    @if (ViewBag.ErrorMessage != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>@ViewBag.ErrorMessage
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card schedule-header-card">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h3 class="mb-1">
+                                <i class="fas fa-calendar-alt me-2"></i>Monthly Schedule - Dr. @Model.DoctorName
+                            </h3>
+                            <p class="text-muted mb-0">@Model.Specialization</p>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <div class="btn-group me-2">
+                                <a href="@Url.Action("MonthlyView", new { month = Model.CurrentMonth.AddMonths(-1) })" class="btn btn-outline-secondary">
+                                    <i class="fas fa-chevron-left"></i> Previous
+                                </a>
+                                <a href="@Url.Action("MonthlyView", new { month = DateTime.Today })" class="btn btn-primary">
+                                    Today
+                                </a>
+                                <a href="@Url.Action("MonthlyView", new { month = Model.CurrentMonth.AddMonths(1) })" class="btn btn-outline-secondary">
+                                    Next <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </div>
+                            <div class="btn-group">
+                                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#specialScheduleModal">
+                                    <i class="fas fa-plus me-1"></i>Special Schedule
+                                </button>
+                                <button class="btn btn-info" data-bs-toggle="modal" data-bs-target="#bulkUpdateModal">
+                                    <i class="fas fa-edit me-1"></i>Bulk Update
+                                </button>
+                                <a href="@Url.Action("Schedule")" class="btn btn-outline-primary">
+                                    <i class="fas fa-cog me-1"></i>Weekly Setup
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="row mb-4">
+        <div class="col-md-2 col-sm-4 col-6 mb-3">
+            <div class="stats-card bg-primary text-white">
+                <div class="stats-icon">
+                    <i class="fas fa-briefcase"></i>
+                </div>
+                <div class="stats-number">@Model.Stats.TotalWorkingDays</div>
+                <div class="stats-label">Working Days</div>
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-4 col-6 mb-3">
+            <div class="stats-card bg-success text-white">
+                <div class="stats-icon">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="stats-number">@Model.Stats.TotalAppointments</div>
+                <div class="stats-label">Appointments</div>
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-4 col-6 mb-3">
+            <div class="stats-card bg-info text-white">
+                <div class="stats-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stats-number">@Model.Stats.TotalAvailableSlots</div>
+                <div class="stats-label">Total Slots</div>
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-4 col-6 mb-3">
+            <div class="stats-card bg-warning text-white">
+                <div class="stats-icon">
+                    <i class="fas fa-percentage"></i>
+                </div>
+                <div class="stats-number">@Model.Stats.BookingRate.ToString("F1")%</div>
+                <div class="stats-label">Booking Rate</div>
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-4 col-6 mb-3">
+            <div class="stats-card bg-danger text-white">
+                <div class="stats-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="stats-number">@(Model.SpecialSchedules.Count(s => s.Type == HealthcareApp.Models.SpecialScheduleType.Emergency))</div>
+                <div class="stats-label">Emergency</div>
+            </div>
+        </div>
+        <div class="col-md-2 col-sm-4 col-6 mb-3">
+            <div class="stats-card bg-secondary text-white">
+                <div class="stats-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stats-number">@(Model.SpecialSchedules.Count(s => s.Type == HealthcareApp.Models.SpecialScheduleType.Conference))</div>
+                <div class="stats-label">Conferences</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendar -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-calendar me-2"></i>@Model.CurrentMonth.ToString("MMMM yyyy")
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="calendar-container">
+                        <!-- Calendar Header -->
+                        <div class="calendar-header">
+                            <div class="calendar-day-header">Sun</div>
+                            <div class="calendar-day-header">Mon</div>
+                            <div class="calendar-day-header">Tue</div>
+                            <div class="calendar-day-header">Wed</div>
+                            <div class="calendar-day-header">Thu</div>
+                            <div class="calendar-day-header">Fri</div>
+                            <div class="calendar-day-header">Sat</div>
+                        </div>
+
+                        <!-- Calendar Body -->
+                        <div class="calendar-body">
+                            @foreach (var week in Model.CalendarDays.Select((day, index) => new { day, index }).GroupBy(x => x.index / 7))
+                            {
+                                <div class="calendar-week">
+                                    @foreach (var dayItem in week)
+                                    {
+                                        var day = dayItem.day;
+                                        var dayClass = GetDayClass(day);
+                                        <div class="calendar-day @dayClass" data-date="@day.Date.ToString("yyyy-MM-dd")"
+                                             data-bs-toggle="@(day.IsCurrentMonth ? "modal" : "")"
+                                             data-bs-target="@(day.IsCurrentMonth ? "#dayDetailModal" : "")">
+                                            <div class="day-number">
+                                                @day.Date.Day
+                                                @if (day.IsToday)
+                                                {
+                                                    <span class="today-indicator"></span>
+                                                }
+                                            </div>
+                                            @if (day.IsCurrentMonth)
+                                            {
+                                                <div class="day-content">
+                                                    @{
+                                                        var specialSchedule = Model.SpecialSchedules.FirstOrDefault(s => s.Date.Date == day.Date.Date);
+                                                        var hasRegularSchedule = Model.WeeklySchedules.Any(s => s.DayOfWeek == day.Date.DayOfWeek && s.IsAvailable);
+                                                    }
+                                                    
+                                                    @if (specialSchedule != null)
+                                                    {
+                                                        <div class="schedule-badge @GetScheduleTypeClass(specialSchedule.Type)">
+                                                            @GetScheduleTypeIcon(specialSchedule.Type)
+                                                        </div>
+                                                    }
+                                                    
+                                                    @if (hasRegularSchedule || specialSchedule != null)
+                                                    {
+                                                        <div class="slot-info">
+                                                            <small class="text-success fw-bold">Available</small>
+                                                            @if (day.AppointmentCount > 0)
+                                                            {
+                                                                <small class="text-warning d-block">@day.AppointmentCount booked</small>
+                                                            }
+                                                        </div>
+                                                    }
+                                                    else if (specialSchedule?.Type == HealthcareApp.Models.SpecialScheduleType.Holiday)
+                                                    {
+                                                        <div class="schedule-status">
+                                                            <i class="fas fa-umbrella-beach text-warning"></i>
+                                                            <small class="d-block text-muted">Holiday</small>
+                                                        </div>
+                                                    }
+                                                    else if (specialSchedule?.Type == HealthcareApp.Models.SpecialScheduleType.Conference)
+                                                    {
+                                                        <div class="schedule-status">
+                                                            <i class="fas fa-users text-purple"></i>
+                                                            <small class="d-block text-muted">Conference</small>
+                                                        </div>
+                                                    }
+                                                    else if (!hasRegularSchedule)
+                                                    {
+                                                        <div class="schedule-status">
+                                                            <i class="fas fa-times-circle text-muted"></i>
+                                                            <small class="d-block text-muted">No schedule</small>
+                                                        </div>
+                                                    }
+
+                                                    @if (!string.IsNullOrEmpty(specialSchedule?.Note))
+                                                    {
+                                                        <div class="day-note">
+                                                            <small class="text-muted">@specialSchedule.Note.Substring(0, Math.Min(specialSchedule.Note.Length, 20))@(specialSchedule.Note.Length > 20 ? "..." : "")</small>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Special Schedules List -->
+    <div class="row mt-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">
+                        <i class="fas fa-list me-2"></i>Special Schedules This Month
+                    </h6>
+                    <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#specialScheduleModal">
+                        <i class="fas fa-plus me-1"></i>Add Special Schedule
+                    </button>
+                </div>
+                <div class="card-body">
+                    @if (Model.SpecialSchedules.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Type</th>
+                                        <th>Time</th>
+                                        <th>Note</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var special in Model.SpecialSchedules.OrderBy(s => s.Date))
+                                    {
+                                        <tr>
+                                            <td>
+                                                <strong>@special.Date.ToString("MMM dd, yyyy")</strong><br>
+                                                <small class="text-muted">@special.Date.DayOfWeek</small>
+                                            </td>
+                                            <td>
+                                                <span class="badge @GetScheduleTypeClass(special.Type)">
+                                                    @GetScheduleTypeIcon(special.Type) @special.Type.ToString()
+                                                </span>
+                                            </td>
+                                            <td>
+                                                @if (special.StartTime.HasValue && special.EndTime.HasValue)
+                                                {
+                                                    <span>@string.Format("{0:D2}:{1:D2}", special.StartTime.Value.Hours, special.StartTime.Value.Minutes) - @string.Format("{0:D2}:{1:D2}", special.EndTime.Value.Hours, special.EndTime.Value.Minutes)</span>
+                                                    @if (special.BreakStartTime.HasValue && special.BreakEndTime.HasValue)
+                                                    {
+                                                        <br><small class="text-muted">Break: @string.Format("{0:D2}:{1:D2}", special.BreakStartTime.Value.Hours, special.BreakStartTime.Value.Minutes) - @string.Format("{0:D2}:{1:D2}", special.BreakEndTime.Value.Hours, special.BreakEndTime.Value.Minutes)</small>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">All Day</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(special.Note))
+                                                {
+                                                    <span>@special.Note</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">No note</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm">
+                                                    <button class="btn btn-outline-primary btn-edit-special" data-id="@special.Id"
+                                                            data-date="@special.Date.ToString("yyyy-MM-dd")"
+                                                            data-type="@((int)special.Type)"
+                                                            data-start-time="@(special.StartTime != null ? string.Format("{0:D2}:{1:D2}", special.StartTime.Value.Hours, special.StartTime.Value.Minutes) : "")"
+                                                            data-end-time="@(special.EndTime != null ? string.Format("{0:D2}:{1:D2}", special.EndTime.Value.Hours, special.EndTime.Value.Minutes) : "")"
+                                                            data-break-start="@(special.BreakStartTime != null ? string.Format("{0:D2}:{1:D2}", special.BreakStartTime.Value.Hours, special.BreakStartTime.Value.Minutes) : "")"
+                                                            data-break-end="@(special.BreakEndTime != null ? string.Format("{0:D2}:{1:D2}", special.BreakEndTime.Value.Hours, special.BreakEndTime.Value.Minutes) : "")"
+                                                            data-duration="@special.SlotDurationMinutes"
+                                                            data-note="@special.Note"
+                                                            data-bs-toggle="modal" data-bs-target="#editSpecialScheduleModal">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="btn btn-outline-danger btn-delete-special" data-id="@special.Id"
+                                                            data-date="@special.Date.ToString("MMM dd, yyyy")">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No special schedules for this month.</p>
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#specialScheduleModal">
+                                <i class="fas fa-plus me-1"></i>Create Your First Special Schedule
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="mb-3">
+                        <i class="fas fa-info-circle me-2"></i>Legend
+                    </h6>
+                    <div class="legend-grid">
+                        <div class="legend-item available">
+                            <i class="fas fa-check-circle"></i> Available
+                        </div>
+                        <div class="legend-item booked">
+                            <i class="fas fa-calendar-check"></i> Booked
+                        </div>
+                        <div class="legend-item holiday">
+                            <i class="fas fa-umbrella-beach"></i> Holiday
+                        </div>
+                        <div class="legend-item emergency">
+                            <i class="fas fa-exclamation-triangle"></i> Emergency
+                        </div>
+                        <div class="legend-item conference">
+                            <i class="fas fa-users"></i> Conference
+                        </div>
+                        <div class="legend-item today">
+                            <i class="fas fa-star"></i> Today
+                        </div>
+                    </div>
+                    <hr>
+                    <h6 class="mb-3">
+                        <i class="fas fa-lightbulb me-2"></i>Quick Tips
+                    </h6>
+                    <ul class="list-unstyled small">
+                        <li class="mb-2">
+                            <i class="fas fa-mouse-pointer me-2 text-primary"></i>Click on any day to view details
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-plus me-2 text-success"></i>Use "Special Schedule" for holidays or custom hours
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-edit me-2 text-info"></i>Use "Bulk Update" for multiple days
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-cog me-2 text-warning"></i>Set up weekly patterns in "Weekly Setup"
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Special Schedule Modal -->
+<div class="modal fade" id="specialScheduleModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-plus me-2"></i>Create Special Schedule
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="specialScheduleForm">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Date</label>
+                            <input type="date" class="form-control" name="Date" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Schedule Type</label>
+                            <select class="form-select" name="Type" required>
+                                <option value="0">Custom Hours</option>
+                                <option value="1">Holiday</option>
+                                <option value="2">Vacation</option>
+                                <option value="3">Conference</option>
+                                <option value="4">Emergency</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Start Time</label>
+                            <input type="time" class="form-control" name="StartTime">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">End Time</label>
+                            <input type="time" class="form-control" name="EndTime">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Break Start</label>
+                            <input type="time" class="form-control" name="BreakStartTime">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Break End</label>
+                            <input type="time" class="form-control" name="BreakEndTime">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Slot Duration</label>
+                            <select class="form-select" name="SlotDurationMinutes">
+                                <option value="15">15 minutes</option>
+                                <option value="30" selected>30 minutes</option>
+                                <option value="45">45 minutes</option>
+                                <option value="60">60 minutes</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Note</label>
+                            <textarea class="form-control" name="Note" rows="3" placeholder="Optional note about this special schedule"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i>Save Special Schedule
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Update Modal -->
+<div class="modal fade" id="bulkUpdateModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-edit me-2"></i>Bulk Schedule Update
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="bulkUpdateForm">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Start Date</label>
+                            <input type="date" class="form-control" name="StartDate" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">End Date</label>
+                            <input type="date" class="form-control" name="EndDate" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Select Days</label>
+                            <div class="row">
+                                <div class="col-md-3 col-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="SelectedDays" value="0" id="sunday">
+                                        <label class="form-check-label" for="sunday">Sunday</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="SelectedDays" value="1" id="monday">
+                                        <label class="form-check-label" for="monday">Monday</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="SelectedDays" value="2" id="tuesday">
+                                        <label class="form-check-label" for="tuesday">Tuesday</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="SelectedDays" value="3" id="wednesday">
+                                        <label class="form-check-label" for="wednesday">Wednesday</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="SelectedDays" value="4" id="thursday">
+                                        <label class="form-check-label" for="thursday">Thursday</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="SelectedDays" value="5" id="friday">
+                                        <label class="form-check-label" for="friday">Friday</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-3 col-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="SelectedDays" value="6" id="saturday">
+                                        <label class="form-check-label" for="saturday">Saturday</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Schedule Type</label>
+                            <select class="form-select" name="Type" required>
+                                <option value="0">Custom Hours</option>
+                                <option value="1">Holiday</option>
+                                <option value="2">Vacation</option>
+                                <option value="3">Conference</option>
+                                <option value="4">Emergency</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Slot Duration</label>
+                            <select class="form-select" name="SlotDurationMinutes">
+                                <option value="15">15 minutes</option>
+                                <option value="30" selected>30 minutes</option>
+                                <option value="45">45 minutes</option>
+                                <option value="60">60 minutes</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Note</label>
+                            <textarea class="form-control" name="Note" rows="2" placeholder="Optional note for all selected dates"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i>Apply Bulk Update
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Special Schedule Modal -->
+<div class="modal fade" id="editSpecialScheduleModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-edit me-2"></i>Edit Special Schedule
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editSpecialScheduleForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="Id" id="editScheduleId">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Date</label>
+                            <input type="date" class="form-control" name="Date" id="editDate" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Schedule Type</label>
+                            <select class="form-select" name="Type" id="editType" required>
+                                <option value="0">Custom Hours</option>
+                                <option value="1">Holiday</option>
+                                <option value="2">Vacation</option>
+                                <option value="3">Conference</option>
+                                <option value="4">Emergency</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Start Time</label>
+                            <input type="time" class="form-control" name="StartTime" id="editStartTime">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">End Time</label>
+                            <input type="time" class="form-control" name="EndTime" id="editEndTime">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Break Start</label>
+                            <input type="time" class="form-control" name="BreakStartTime" id="editBreakStartTime">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Break End</label>
+                            <input type="time" class="form-control" name="BreakEndTime" id="editBreakEndTime">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Slot Duration</label>
+                            <select class="form-select" name="SlotDurationMinutes" id="editSlotDuration">
+                                <option value="15">15 minutes</option>
+                                <option value="30">30 minutes</option>
+                                <option value="45">45 minutes</option>
+                                <option value="60">60 minutes</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Note</label>
+                            <textarea class="form-control" name="Note" id="editNote" rows="3" placeholder="Optional note about this special schedule"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i>Update Special Schedule
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Day Detail Modal -->
+<div class="modal fade" id="dayDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-calendar-day me-2"></i>Day Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="dayDetailContent">
+                    <!-- Content will be loaded dynamically -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="#" id="viewDailyScheduleBtn" class="btn btn-primary">
+                    <i class="fas fa-eye me-1"></i>View Daily Schedule
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    private string GetDayClass(HealthcareApp.Models.CalendarDay day)
+    {
+        var classes = new List<string>();
+        
+        if (!day.IsCurrentMonth) classes.Add("other-month");
+        if (day.IsToday) classes.Add("today");
+        if (day.Date.DayOfWeek == DayOfWeek.Saturday || day.Date.DayOfWeek == DayOfWeek.Sunday) classes.Add("weekend");
+        if (day.HasSchedule) classes.Add("available");
+        if (day.AppointmentCount > 0) classes.Add("has-bookings");
+        if (day.HasSpecialSchedule) classes.Add("special-schedule");
+        
+        return string.Join(" ", classes);
+    }
+
+    private string GetScheduleTypeClass(HealthcareApp.Models.SpecialScheduleType type)
+    {
+        return type switch
+        {
+            HealthcareApp.Models.SpecialScheduleType.Holiday => "bg-warning text-dark",
+            HealthcareApp.Models.SpecialScheduleType.Emergency => "bg-danger text-white",
+            HealthcareApp.Models.SpecialScheduleType.Conference => "bg-info text-white",
+            HealthcareApp.Models.SpecialScheduleType.Vacation => "bg-success text-white",
+            _ => "bg-secondary text-white"
+        };
+    }
+
+    private string GetScheduleTypeIcon(HealthcareApp.Models.SpecialScheduleType type)
+    {
+        return type switch
+        {
+            HealthcareApp.Models.SpecialScheduleType.Holiday => "🏖️",
+            HealthcareApp.Models.SpecialScheduleType.Emergency => "🚨",
+            HealthcareApp.Models.SpecialScheduleType.Conference => "👥",
+            HealthcareApp.Models.SpecialScheduleType.Vacation => "🌴",
+            _ => "📅"
+        };
+    }
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Special Schedule Form
+            $('#specialScheduleForm').on('submit', function(e) {
+                e.preventDefault();
+                const form = $(this);
+                const submitBtn = form.find('button[type="submit"]');
+                const originalText = submitBtn.html();
+
+                // Disable button and show loading
+                submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Creating...');
+
+                const formData = {
+                    Date: $('#specialScheduleForm input[name="Date"]').val(),
+                    Type: parseInt($('#specialScheduleForm select[name="Type"]').val()),
+                    StartTime: $('#specialScheduleForm input[name="StartTime"]').val() || null,
+                    EndTime: $('#specialScheduleForm input[name="EndTime"]').val() || null,
+                    BreakStartTime: $('#specialScheduleForm input[name="BreakStartTime"]').val() || null,
+                    BreakEndTime: $('#specialScheduleForm input[name="BreakEndTime"]').val() || null,
+                    SlotDurationMinutes: parseInt($('#specialScheduleForm select[name="SlotDurationMinutes"]').val()),
+                    Note: $('#specialScheduleForm textarea[name="Note"]').val()
+                };
+
+                // Add CSRF token
+                formData['__RequestVerificationToken'] = $('input[name="__RequestVerificationToken"]').val();
+
+                $.ajax({
+                    url: '@Url.Action("CreateSpecialSchedule")',
+                    type: 'POST',
+                    data: formData,
+                    success: function(response) {
+                        submitBtn.prop('disabled', false).html(originalText);
+                        if (response.success) {
+                            showToast('Success', response.message, 'success');
+                            $('#specialScheduleModal').modal('hide');
+                            form[0].reset(); // Reset form
+                            location.reload();
+                        } else {
+                            showToast('Error', response.message, 'error');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        submitBtn.prop('disabled', false).html(originalText);
+                        let errorMessage = 'Failed to create special schedule';
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        } else if (xhr.responseText) {
+                            try {
+                                const response = JSON.parse(xhr.responseText);
+                                errorMessage = response.message || errorMessage;
+                            } catch (e) {
+                                errorMessage = 'Server error occurred';
+                            }
+                        }
+                        showToast('Error', errorMessage, 'error');
+                    }
+                });
+            });
+
+            // Edit Special Schedule
+            $('.btn-edit-special').on('click', function() {
+                const btn = $(this);
+                $('#editScheduleId').val(btn.data('id'));
+                $('#editDate').val(btn.data('date'));
+                $('#editType').val(btn.data('type'));
+                $('#editStartTime').val(btn.data('start-time') || '');
+                $('#editEndTime').val(btn.data('end-time') || '');
+                $('#editBreakStartTime').val(btn.data('break-start') || '');
+                $('#editBreakEndTime').val(btn.data('break-end') || '');
+                $('#editSlotDuration').val(btn.data('duration') || 30);
+                $('#editNote').val(btn.data('note') || '');
+            });
+
+            // Edit Special Schedule Form
+            $('#editSpecialScheduleForm').on('submit', function(e) {
+                e.preventDefault();
+                const formData = {
+                    Id: parseInt($('#editScheduleId').val()),
+                    Date: $('#editDate').val(),
+                    Type: parseInt($('#editType').val()),
+                    StartTime: $('#editStartTime').val() || null,
+                    EndTime: $('#editEndTime').val() || null,
+                    BreakStartTime: $('#editBreakStartTime').val() || null,
+                    BreakEndTime: $('#editBreakEndTime').val() || null,
+                    SlotDurationMinutes: parseInt($('#editSlotDuration').val()),
+                    Note: $('#editNote').val()
+                };
+
+                $.ajax({
+                    url: '@Url.Action("UpdateSpecialSchedule")',
+                    type: 'POST',
+                    data: formData,
+                    success: function(response) {
+                        if (response.success) {
+                            showToast('Success', response.message, 'success');
+                            $('#editSpecialScheduleModal').modal('hide');
+                            location.reload();
+                        } else {
+                            showToast('Error', response.message, 'error');
+                        }
+                    },
+                    error: function() {
+                        showToast('Error', 'Failed to update special schedule', 'error');
+                    }
+                });
+            });
+
+            // Delete Special Schedule
+            $('.btn-delete-special').on('click', function() {
+                const btn = $(this);
+                const scheduleId = btn.data('id');
+                const scheduleDate = btn.data('date');
+
+                if (confirm(`Are you sure you want to delete the special schedule for ${scheduleDate}?`)) {
+                    $.ajax({
+                        url: '@Url.Action("DeleteSpecialSchedule")',
+                        type: 'POST',
+                        data: { id: scheduleId },
+                        success: function(response) {
+                            if (response.success) {
+                                showToast('Success', response.message, 'success');
+                                location.reload();
+                            } else {
+                                showToast('Error', response.message, 'error');
+                            }
+                        },
+                        error: function() {
+                            showToast('Error', 'Failed to delete special schedule', 'error');
+                        }
+                    });
+                }
+            });
+
+            // Calendar Day Click
+            $('.calendar-day').on('click', function() {
+                const date = $(this).data('date');
+                if (date && $(this).hasClass('calendar-day') && !$(this).hasClass('other-month')) {
+                    loadDayDetails(date);
+                    $('#viewDailyScheduleBtn').attr('href', '@Url.Action("DailyView")?date=' + date);
+                }
+            });
+        });
+
+        function showToast(title, message, type) {
+            const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+            const toast = $(`<div class="alert ${alertClass} alert-dismissible fade show position-fixed" style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+                <strong>${title}:</strong> ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>`);
+            $('body').append(toast);
+            setTimeout(function() {
+                toast.alert('close');
+            }, 5000);
+        }
+
+        function loadDayDetails(date) {
+            const dayName = new Date(date).toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            
+            let content = `
+                <div class="day-detail-header">
+                    <h5>${dayName}</h5>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="detail-card">
+                            <h6><i class="fas fa-info-circle me-2"></i>Schedule Information</h6>
+                            <p>Click "View Daily Schedule" to see detailed time slots and appointments for this day.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-card">
+                            <h6><i class="fas fa-clock me-2"></i>Quick Actions</h6>
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-primary btn-sm" onclick="window.location.href='@Url.Action("DailyView")?date=${date}'">
+                                    <i class="fas fa-eye me-1"></i>View Daily Schedule
+                                </button>
+                                <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#specialScheduleModal" onclick="$('#specialScheduleForm input[name=Date]').val('${date}')">
+                                    <i class="fas fa-plus me-1"></i>Add Special Schedule
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            $('#dayDetailContent').html(content);
+        }
+    </script>
+}
+
+@section Styles {
+    <style>
+        :root {
+            --doctor-primary: #388e3c;
+            --doctor-secondary: #4caf50;
+        }
+
+        .schedule-header-card {
+            background: linear-gradient(135deg, var(--doctor-primary), var(--doctor-secondary));
+            color: white;
+            border: none;
+        }
+
+        .stats-card {
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stats-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .stats-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stats-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .calendar-container {
+            background: white;
+        }
+
+        .calendar-header {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .calendar-day-header {
+            padding: 15px 10px;
+            text-align: center;
+            font-weight: 600;
+            color: #495057;
+            border-right: 1px solid #dee2e6;
+        }
+
+        .calendar-day-header:last-child {
+            border-right: none;
+        }
+
+        .calendar-body {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .calendar-week {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+        }
+
+        .calendar-day {
+            min-height: 120px;
+            border-right: 1px solid #dee2e6;
+            border-bottom: 1px solid #dee2e6;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .calendar-day:last-child {
+            border-right: none;
+        }
+
+        .calendar-day:hover {
+            background-color: #f8f9fa;
+        }
+
+        .calendar-day.other-month {
+            background-color: #f8f9fa;
+            color: #6c757d;
+            cursor: default;
+        }
+
+        .calendar-day.today {
+            background-color: #e3f2fd;
+            border: 2px solid #2196f3;
+        }
+
+        .calendar-day.available {
+            background-color: #e8f5e8;
+        }
+
+        .calendar-day.special-schedule {
+            background-color: #fff3e0;
+        }
+
+        .calendar-day.has-bookings {
+            border-left: 4px solid #ff9800;
+        }
+
+        .day-number {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+            position: relative;
+        }
+
+        .today-indicator {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 8px;
+            height: 8px;
+            background: #2196f3;
+            border-radius: 50%;
+        }
+
+        .day-content {
+            font-size: 0.8rem;
+        }
+
+        .schedule-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            margin-bottom: 3px;
+        }
+
+        .slot-info small {
+            display: block;
+            line-height: 1.2;
+        }
+
+        .schedule-status {
+            text-align: center;
+            margin-top: 5px;
+        }
+
+        .day-note {
+            margin-top: 3px;
+            padding: 2px 4px;
+            background: rgba(0,0,0,0.05);
+            border-radius: 3px;
+        }
+
+        .text-purple {
+            color: #9c27b0 !important;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            background: #f8f9fa;
+        }
+
+        .legend-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(0,0,0,0.02);
+        }
+
+        .btn-group-sm .btn {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        .detail-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .day-detail-header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        @@media (max-width: 768px) {
+            .calendar-day {
+                min-height: 80px;
+                padding: 4px;
+            }
+
+            .day-content {
+                font-size: 0.7rem;
+            }
+
+            .stats-card {
+                margin-bottom: 15px;
+            }
+        }
+    </style>
+}

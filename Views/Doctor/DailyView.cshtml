@@ -1,0 +1,250 @@
+@model HealthcareApp.Models.DailyScheduleViewModel
+@{
+    ViewData["Title"] = "Daily Schedule";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h4 class="mb-0">
+                                <i class="fas fa-calendar-day me-2"></i>Daily Schedule - @ViewBag.DoctorName
+                            </h4>
+                            <small class="text-muted">@Model.Date.ToString("dddd, MMMM dd, yyyy")</small>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <div class="btn-group me-2" role="group">
+                                <a href="@Url.Action("DailyView", new { date = Model.Date.AddDays(-1) })" class="btn btn-outline-secondary btn-sm">
+                                    <i class="fas fa-chevron-left"></i> Previous
+                                </a>
+                                <a href="@Url.Action("DailyView", new { date = DateTime.Today })" class="btn btn-outline-primary btn-sm">
+                                    Today
+                                </a>
+                                <a href="@Url.Action("DailyView", new { date = Model.Date.AddDays(1) })" class="btn btn-outline-secondary btn-sm">
+                                    Next <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </div>
+                            <a href="@Url.Action("Schedule")" class="btn btn-primary btn-sm">
+                                <i class="fas fa-cog me-1"></i>Manage Schedule
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (Model.DaySchedule == null || !Model.DaySchedule.IsAvailable)
+                    {
+                        <div class="text-center py-5">
+                            <div class="mb-4">
+                                <i class="fas fa-calendar-times fa-4x text-muted"></i>
+                            </div>
+                            <h5 class="text-muted">No Schedule Set</h5>
+                            <p class="text-muted">You haven't set your availability for @Model.DayOfWeek.ToString().</p>
+                            <a href="@Url.Action("Schedule")" class="btn btn-primary">
+                                <i class="fas fa-plus me-1"></i>Set Schedule
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Schedule Summary -->
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <div class="card bg-primary text-white">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-clock fa-2x mb-2"></i>
+                                        <h6>Working Hours</h6>
+                                        <p class="mb-0">@string.Format("{0:D2}:{1:D2}", Model.DaySchedule.StartTime.Hours, Model.DaySchedule.StartTime.Minutes) - @string.Format("{0:D2}:{1:D2}", Model.DaySchedule.EndTime.Hours, Model.DaySchedule.EndTime.Minutes)</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-info text-white">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-list fa-2x mb-2"></i>
+                                        <h6>Total Slots</h6>
+                                        <p class="mb-0 h4">@Model.TotalSlots</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-success text-white">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-check-circle fa-2x mb-2"></i>
+                                        <h6>Available</h6>
+                                        <p class="mb-0 h4">@Model.AvailableSlots</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-warning text-white">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-user-clock fa-2x mb-2"></i>
+                                        <h6>Booked</h6>
+                                        <p class="mb-0 h4">@Model.BookedSlots</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (Model.DaySchedule.BreakStartTime.HasValue && Model.DaySchedule.BreakEndTime.HasValue)
+                        {
+                            <div class="alert alert-info mb-4">
+                                <i class="fas fa-coffee me-2"></i>
+                                <strong>Break Time:</strong> @string.Format("{0:D2}:{1:D2}", Model.DaySchedule.BreakStartTime.Value.Hours, Model.DaySchedule.BreakStartTime.Value.Minutes) - @string.Format("{0:D2}:{1:D2}", Model.DaySchedule.BreakEndTime.Value.Hours, Model.DaySchedule.BreakEndTime.Value.Minutes)
+                            </div>
+                        }
+
+                        <!-- Time Slots Grid -->
+                        <div class="row">
+                            <div class="col-12">
+                                <h6 class="mb-3">
+                                    <i class="fas fa-clock me-2"></i>Time Slots 
+                                    <small class="text-muted">(@Model.DaySchedule.SlotDurationMinutes min each)</small>
+                                </h6>
+                                @if (Model.TimeSlots.Any())
+                                {
+                                    <div class="row g-2">
+                                        @foreach (var slot in Model.TimeSlots)
+                                        {
+                                            <div class="col-lg-2 col-md-3 col-sm-4 col-6">
+                                                <div class="card h-100 @GetSlotCardClass(slot)">
+                                                    <div class="card-body p-2 text-center">
+                                                        <div class="fw-bold">@slot.DateTime.ToString("HH:mm")</div>
+                                                        <small class="@GetSlotTextClass(slot)">@GetSlotStatus(slot)</small>
+                                                        @if (slot.IsBooked)
+                                                        {
+                                                            <div class="mt-1">
+                                                                <i class="fas fa-user-check text-warning"></i>
+                                                            </div>
+                                                        }
+                                                        else if (!slot.IsAvailable)
+                                                        {
+                                                            <div class="mt-1">
+                                                                <i class="fas fa-clock text-muted"></i>
+                                                            </div>
+                                                        }
+                                                        else
+                                                        {
+                                                            <div class="mt-1">
+                                                                <i class="fas fa-check-circle text-success"></i>
+                                                            </div>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="text-center py-4">
+                                        <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                                        <p class="text-muted">No time slots available for this day.</p>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Legend -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="mb-3">
+                                            <i class="fas fa-info-circle me-2"></i>Legend
+                                        </h6>
+                                        <div class="row">
+                                            <div class="col-md-3 col-6 mb-2">
+                                                <span class="badge bg-success me-2"><i class="fas fa-check-circle"></i></span>Available
+                                            </div>
+                                            <div class="col-md-3 col-6 mb-2">
+                                                <span class="badge bg-warning me-2"><i class="fas fa-user-check"></i></span>Booked
+                                            </div>
+                                            <div class="col-md-3 col-6 mb-2">
+                                                <span class="badge bg-secondary me-2"><i class="fas fa-clock"></i></span>Past Time
+                                            </div>
+                                            <div class="col-md-3 col-6 mb-2">
+                                                <span class="badge bg-info me-2"><i class="fas fa-coffee"></i></span>Break Time
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    private string GetSlotCardClass(HealthcareApp.Models.TimeSlot slot)
+    {
+        if (slot.IsBooked)
+            return "border-warning bg-warning bg-opacity-10";
+        else if (!slot.IsAvailable)
+            return "border-secondary bg-secondary bg-opacity-10";
+        else
+            return "border-success bg-success bg-opacity-10";
+    }
+
+    private string GetSlotTextClass(HealthcareApp.Models.TimeSlot slot)
+    {
+        if (slot.IsBooked)
+            return "text-warning";
+        else if (!slot.IsAvailable)
+            return "text-muted";
+        else
+            return "text-success";
+    }
+
+    private string GetSlotStatus(HealthcareApp.Models.TimeSlot slot)
+    {
+        if (slot.IsBooked)
+            return "Booked";
+        else if (!slot.IsAvailable)
+            return "Past";
+        else
+            return "Available";
+    }
+}
+
+@section Styles {
+<link rel="stylesheet" href="~/css/doctor-schedule.css" />
+<style>
+    .card {
+        transition: all 0.3s ease;
+    }
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .btn-group .btn {
+        border-radius: 0;
+    }
+    .btn-group .btn:first-child {
+        border-top-left-radius: 0.375rem;
+        border-bottom-left-radius: 0.375rem;
+    }
+    .btn-group .btn:last-child {
+        border-top-right-radius: 0.375rem;
+        border-bottom-right-radius: 0.375rem;
+    }
+    .bg-opacity-10 {
+        background-color: rgba(var(--bs-bg-opacity), 0.1) !important;
+    }
+    .fa-4x {
+        font-size: 4rem;
+    }
+    .fa-3x {
+        font-size: 3rem;
+    }
+    .fa-2x {
+        font-size: 2rem;
+    }
+</style>
+}
