@@ -1,0 +1,311 @@
+@model PatientPaymentsViewModel
+@{
+    ViewData["Title"] = "Payments";
+    Layout = "~/Views/Shared/_PatientLayout.cshtml";
+}
+
+<div class="dashboard-content">
+    <!-- Header Section -->
+    <div class="dashboard-header mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="dashboard-title">Payments</h1>
+                <p class="dashboard-subtitle text-muted">Manage your appointment payments</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a asp-action="Dashboard" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Special Discount Alert -->
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-gift me-2"></i>
+        <strong>Special Offer!</strong> Get 20% off on your next appointment for Senior Citizens and Students.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Payment Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <div class="card stats-card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stats-icon bg-danger bg-gradient">
+                            <i class="fas fa-exclamation-circle text-white"></i>
+                        </div>
+                        <div class="ms-3">
+                            <div class="stats-number">RM@(Model.TotalUnpaid.ToString("F2"))</div>
+                            <div class="stats-label text-muted">Total Unpaid</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="card stats-card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stats-icon bg-success bg-gradient">
+                            <i class="fas fa-check-circle text-white"></i>
+                        </div>
+                        <div class="ms-3">
+                            <div class="stats-number">RM@(Model.TotalPaid.ToString("F2"))</div>
+                            <div class="stats-label text-muted">Total Paid</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Unpaid Appointments -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-file-invoice-dollar me-2 text-danger"></i>Unpaid Appointments
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.UnpaidAppointments.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Doctor</th>
+                                        <th>Reason</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var appointment in Model.UnpaidAppointments)
+                                    {
+                                        <tr>
+                                            <td>@appointment.AppointmentDate.ToString("MMM dd, yyyy")</td>
+                                            <td>
+                                                @if (appointment.Doctor != null)
+                                                {
+                                                    <span>Dr. @appointment.Doctor.FullName</span>
+                                                }
+                                                else
+                                                {
+                                                    <span>Dr. John Smith</span>
+                                                }
+                                            </td>
+                                            <td>@appointment.Reason</td>
+                                            <td>
+                                                <div class="text-muted small text-decoration-line-through">
+                                                    RM@((appointment.ConsultationFee ?? 100m).ToString("F2"))
+                                                </div>
+                                                <div class="fw-bold text-success">
+                                                    RM@(((appointment.ConsultationFee ?? 100m) * 0.8m).ToString("F2"))
+                                                </div>
+                                                <small class="text-success">
+                                                    <i class="fas fa-tag me-1"></i>20% off
+                                                </small>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-warning">Unpaid</span>
+                                            </td>
+                                            <td>
+                                                <a asp-action="MakePayment" asp-route-appointmentId="@appointment.AppointmentId" 
+                                                   class="btn btn-sm btn-primary">
+                                                    <i class="fas fa-credit-card me-1"></i>Pay Now
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                            <h6 class="text-muted">No unpaid appointments</h6>
+                            <p class="text-muted">All your appointments are paid up!</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment History -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-history me-2 text-success"></i>Payment History
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.PaymentHistory.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Payment Date</th>
+                                        <th>Appointment</th>
+                                        <th>Amount</th>
+                                        <th>Method</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var payment in Model.PaymentHistory.OrderByDescending(p => p.PaymentDate))
+                                    {
+                                        <tr>
+                                            <td>@payment.PaymentDate.ToString("MMM dd, yyyy hh:mm tt")</td>
+                                            <td>
+                                                @if (payment.Appointment != null)
+                                                {
+                                                    <div>
+                                                        <div class="fw-medium">Dr. @payment.Appointment.Doctor.FullName</div>
+                                                        <small class="text-muted">@payment.Appointment.Reason</small>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">N/A</span>
+                                                }
+                                            </td>
+                                            <td class="fw-bold text-success">RM@(payment.Amount.ToString("F2"))</td>
+                                            <td>
+                                                <i class="fas fa-credit-card me-1"></i>@payment.PaymentMethod
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-@(payment.PaymentStatus == "Completed" ? "success" : payment.PaymentStatus == "Pending" ? "warning" : "danger")">
+                                                    @payment.PaymentStatus
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="fas fa-receipt fa-3x text-muted mb-3"></i>
+                            <h6 class="text-muted">No payment history</h6>
+                            <p class="text-muted">Your payment transactions will appear here</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Discount Information -->
+    <div class="card border-0 shadow-sm mt-4">
+        <div class="card-header bg-primary text-white py-3">
+            <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Discount Eligibility</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="d-flex align-items-start">
+                        <i class="fas fa-user-graduate fa-2x text-primary me-3"></i>
+                        <div>
+                            <h6>Student Discount</h6>
+                            <p class="text-muted mb-0">20% off on all appointments with valid student ID</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="d-flex align-items-start">
+                        <i class="fas fa-user-clock fa-2x text-success me-3"></i>
+                        <div>
+                            <h6>Senior Citizen Discount</h6>
+                            <p class="text-muted mb-0">20% off for patients aged 60 and above</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .dashboard-content {
+        padding: 20px;
+    }
+
+    .dashboard-title {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .dashboard-subtitle {
+        font-size: 1.1rem;
+    }
+
+    .stats-card {
+        transition: transform 0.2s ease-in-out;
+    }
+
+    .stats-card:hover {
+        transform: translateY(-2px);
+    }
+
+    .stats-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .stats-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #2c3e50;
+    }
+
+    .stats-label {
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    .card {
+        border-radius: 12px;
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+    .table thead th {
+        border-bottom: 2px solid #dee2e6;
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .btn {
+        border-radius: 8px;
+    }
+
+    .card:hover {
+        transform: translateY(-2px);
+        transition: all 0.2s ease-in-out;
+    }
+
+    .text-decoration-line-through {
+        text-decoration: line-through !important;
+    }
+</style>

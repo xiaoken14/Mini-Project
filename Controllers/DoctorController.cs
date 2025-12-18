@@ -38,8 +38,12 @@ namespace HealthcareApp.Controllers
                 }
 
                 var doctor = await _userManager.FindByIdAsync(doctorId);
-                // For now, return empty schedules since we need to implement proper ID mapping
-                var schedules = new List<DoctorSchedule>();
+
+                // Get schedules for this doctor using ApplicationUser ID
+                var schedules = await _context.DoctorSchedules
+                    .Where(s => s.DoctorId == doctorId)
+                    .OrderBy(s => s.DayOfWeek)
+                    .ToListAsync();
 
                 var viewModel = new DoctorScheduleViewModel
                 {
@@ -65,62 +69,124 @@ namespace HealthcareApp.Controllers
         [HttpPost]
         public async Task<IActionResult> UpdateSchedule(DoctorSchedule schedule)
         {
-            var doctorId = _userManager.GetUserId(User);
-            schedule.DoctorId = doctorId!;
-            schedule.UpdatedAt = DateTime.UtcNow;
-
-            // For now, return null since we need to implement proper ID mapping
-            DoctorSchedule? existingSchedule = null;
-
-            if (existingSchedule != null)
+            try
             {
-                existingSchedule.StartTime = schedule.StartTime;
-                existingSchedule.EndTime = schedule.EndTime;
-                existingSchedule.BreakStartTime = schedule.BreakStartTime;
-                existingSchedule.BreakEndTime = schedule.BreakEndTime;
-                existingSchedule.SlotDurationMinutes = schedule.SlotDurationMinutes;
-                existingSchedule.IsAvailable = schedule.IsAvailable;
-                existingSchedule.UpdatedAt = DateTime.UtcNow;
-                _context.Update(existingSchedule);
-            }
-            else
-            {
-                _context.DoctorSchedules.Add(schedule);
-            }
+                var doctorId = _userManager.GetUserId(User);
+                if (string.IsNullOrEmpty(doctorId))
+                {
+                    return Json(new { success = false, message = "User not authenticated." });
+                }
 
-            await _context.SaveChangesAsync();
-            return Json(new { success = true, message = "Schedule updated successfully!" });
+                schedule.DoctorId = doctorId;
+                schedule.UpdatedAt = DateTime.UtcNow;
+
+                // Find existing schedule for this day
+                var existingSchedule = await _context.DoctorSchedules
+                    .FirstOrDefaultAsync(s => s.DoctorId == doctorId && s.DayOfWeek == schedule.DayOfWeek);
+
+                if (existingSchedule != null)
+                {
+                    // Update existing schedule
+                    existingSchedule.StartTime = schedule.StartTime;
+                    existingSchedule.EndTime = schedule.EndTime;
+                    existingSchedule.BreakStartTime = schedule.BreakStartTime;
+                    existingSchedule.BreakEndTime = schedule.BreakEndTime;
+                    existingSchedule.SlotDurationMinutes = schedule.SlotDurationMinutes;
+                    existingSchedule.IsAvailable = schedule.IsAvailable;
+                    existingSchedule.UpdatedAt = DateTime.UtcNow;
+                    _context.Update(existingSchedule);
+                }
+                else
+                {
+                    // Create new schedule
+                    schedule.CreatedAt = DateTime.UtcNow;
+                    _context.DoctorSchedules.Add(schedule);
+                }
+
+                await _context.SaveChangesAsync();
+                return Json(new { success = true, message = "Schedule updated successfully!" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Error: " + ex.Message });
+            }
         }
 
         public async Task<IActionResult> DailyView(DateTime? date)
         {
-            var selectedDate = date ?? DateTime.Today;
-            var doctorId = _userManager.GetUserId(User);
-            var doctor = await _userManager.FindByIdAsync(doctorId!);
-
-            // For now, return null since we need to implement proper ID mapping
-            DoctorSchedule? daySchedule = null;
-
-            // For now, return empty appointments since we need to implement proper ID mapping
-            var appointments = new List<Appointment>();
-
-            var viewModel = new DailyScheduleViewModel
+            try
             {
-                Date = selectedDate,
-                DayOfWeek = selectedDate.DayOfWeek,
-                DaySchedule = daySchedule
-            };
+                var selectedDate = date ?? DateTime.Today;
+                var doctorId = _userManager.GetUserId(User);
+                if (string.IsNullOrEmpty(doctorId))
+                {
+                    return RedirectToAction("Login", "Account");
+                }
 
-            if (daySchedule != null && daySchedule.IsAvailable)
-            {
-                viewModel.TimeSlots = GenerateTimeSlots(selectedDate, daySchedule, appointments);
-                viewModel.TotalSlots = viewModel.TimeSlots.Count;
-                viewModel.BookedSlots = viewModel.TimeSlots.Count(s => s.IsBooked);
-                viewModel.AvailableSlots = viewModel.TimeSlots.Count(s => s.IsAvailable && !s.IsBooked);
+                var doctor = await _userManager.FindByIdAsync(doctorId);
+
+                // Get the day schedule for the selected date
+                var daySchedule = await _context.DoctorSchedules
+                    .FirstOrDefaultAsync(s => s.DoctorId == doctorId && s.DayOfWeek == selectedDate.DayOfWeek);
+
+                // Get all weekly schedules for the diagram
+                var weeklySchedules = await _context.DoctorSchedules
+                    .Where(s => s.DoctorId == doctorId)
+                    .OrderBy(s => s.DayOfWeek)
+                    .ToListAsync();
+
+                // Get appointments for this doctor on the selected date
+                // Note: This requires linking ApplicationUser.DoctorId to Doctor.DoctorId
+                var appointments = new List<Appointment>();
+                var appUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == doctorId);
+                if (appUser?.DoctorId != null)
+                {
+                    appointments = await _context.Appointments
+                        .Where(a => a.DoctorId == appUser.DoctorId.Value && 
+                                    a.AppointmentDate.Date == selectedDate.Date)
+                        .ToListAsync();
+                }
+
+                var viewModel = new DailyScheduleViewModel
+                {
+                    Date = selectedDate,
+                    DayOfWeek = selectedDate.DayOfWeek,
+                    DaySchedule = daySchedule,
+                    WeeklySchedules = weeklySchedules ?? new List<DoctorSchedule>(),
+                    DoctorName = $"{doctor?.FirstName ?? ""} {doctor?.LastName ?? ""}".Trim()
+                };
+
+                if (daySchedule != null && daySchedule.IsAvailable)
+                {
+                    try
+                    {
+                        viewModel.TimeSlots = GenerateTimeSlots(selectedDate, daySchedule, appointments);
+                        viewModel.TotalSlots = viewModel.TimeSlots?.Count ?? 0;
+                        viewModel.BookedSlots = viewModel.TimeSlots?.Count(s => s.IsBooked) ?? 0;
+                        viewModel.AvailableSlots = viewModel.TimeSlots?.Count(s => s.IsAvailable && !s.IsBooked) ?? 0;
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error generating time slots: {ex.Message}");
+                        viewModel.TimeSlots = new List<TimeSlot>();
+                    }
+                }
+
+                ViewBag.DoctorName = $"{doctor?.FirstName ?? ""} {doctor?.LastName ?? ""}".Trim();
+                return View(viewModel);
             }
-
-            ViewBag.DoctorName = $"{doctor?.FirstName} {doctor?.LastName}";
-            return View(viewModel);
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = "An error occurred while loading the daily schedule: " + ex.Message;
+                return View(new DailyScheduleViewModel 
+                { 
+                    Date = date ?? DateTime.Today,
+                    DayOfWeek = (date ?? DateTime.Today).DayOfWeek,
+                    WeeklySchedules = new List<DoctorSchedule>(),
+                    DoctorName = "Doctor",
+                    TimeSlots = new List<TimeSlot>()
+                });
+            }
         }
 
         private List<TimeSlot> GenerateTimeSlots(DateTime date, DoctorSchedule schedule, List<Appointment> appointments)
@@ -139,14 +205,14 @@ namespace HealthcareApp.Controllers
 
                 if (!isBreakTime)
                 {
-                    var appointment = appointments.FirstOrDefault(a => a.AppointmentDate.TimeOfDay == currentTime);
+                    var appointment = appointments.FirstOrDefault(a => a.AppointmentTime == currentTime);
                     slots.Add(new TimeSlot
                     {
                         DateTime = slotDateTime,
-                        TimeString = currentTime.ToString("HH:mm"),
+                        TimeString = currentTime.ToString(@"hh\:mm"),
                         IsAvailable = slotDateTime > DateTime.Now,
                         IsBooked = appointment != null,
-                        AppointmentId = appointment?.Id.ToString()
+                        AppointmentId = appointment?.AppointmentId.ToString()
                     });
                 }
 
@@ -198,7 +264,12 @@ namespace HealthcareApp.Controllers
             try
             {
                 var doctorId = _userManager.GetUserId(User);
-                specialSchedule.DoctorId = doctorId!;
+                if (string.IsNullOrEmpty(doctorId))
+                {
+                    return Json(new { success = false, message = "User not authenticated." });
+                }
+
+                specialSchedule.DoctorId = doctorId;
 
                 // Handle time string conversion manually if needed
                 if (Request.Form.ContainsKey("StartTime") && !string.IsNullOrEmpty(Request.Form["StartTime"]))
@@ -278,26 +349,69 @@ namespace HealthcareApp.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> SaveTemplate(string templateName, string? description)
         {
-            var doctorId = _userManager.GetUserId(User);
-            var result = await _scheduleService.SaveScheduleTemplateAsync(doctorId!, templateName, description);
-            return Json(new { success = result, message = result ? "Schedule template saved successfully!" : "Failed to save template." });
+            try
+            {
+                var doctorId = _userManager.GetUserId(User);
+                if (string.IsNullOrEmpty(doctorId))
+                {
+                    return Json(new { success = false, message = "User not authenticated." });
+                }
+
+                if (string.IsNullOrEmpty(templateName))
+                {
+                    return Json(new { success = false, message = "Template name is required." });
+                }
+
+                var result = await _scheduleService.SaveScheduleTemplateAsync(doctorId, templateName, description);
+                return Json(new { success = result, message = result ? "Schedule template saved successfully!" : "Failed to save template. Make sure you have schedules to save." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Error: " + ex.Message });
+            }
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> ApplyTemplate(int templateId)
         {
-            var doctorId = _userManager.GetUserId(User);
-            var result = await _scheduleService.ApplyScheduleTemplateAsync(doctorId!, templateId);
-            return Json(new { success = result, message = result ? "Template applied successfully!" : "Failed to apply template." });
+            try
+            {
+                var doctorId = _userManager.GetUserId(User);
+                if (string.IsNullOrEmpty(doctorId))
+                {
+                    return Json(new { success = false, message = "User not authenticated." });
+                }
+
+                var result = await _scheduleService.ApplyScheduleTemplateAsync(doctorId, templateId);
+                return Json(new { success = result, message = result ? "Template applied successfully!" : "Failed to apply template. Template may be corrupted or not found." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Error: " + ex.Message });
+            }
         }
 
         public async Task<IActionResult> GetTemplates()
         {
-            var doctorId = _userManager.GetUserId(User);
-            var templates = await _scheduleService.GetScheduleTemplatesAsync(doctorId!);
-            return Json(templates.Select(t => new { t.Id, t.Name, t.Description }));
+            try
+            {
+                var doctorId = _userManager.GetUserId(User);
+                if (string.IsNullOrEmpty(doctorId))
+                {
+                    return Json(new { success = false, message = "User not authenticated." });
+                }
+
+                var templates = await _scheduleService.GetScheduleTemplatesAsync(doctorId);
+                return Json(templates.Select(t => new { t.Id, t.Name, t.Description }));
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Error: " + ex.Message });
+            }
         }
 
         [HttpPost]
@@ -307,8 +421,13 @@ namespace HealthcareApp.Controllers
             try
             {
                 var doctorId = _userManager.GetUserId(User);
-                // For now, return null since we need to implement proper ID mapping
-                DoctorSchedule? schedule = null;
+                if (string.IsNullOrEmpty(doctorId))
+                {
+                    return Json(new { success = false, message = "User not authenticated." });
+                }
+
+                var schedule = await _context.DoctorSchedules
+                    .FirstOrDefaultAsync(s => s.DoctorId == doctorId && s.DayOfWeek == (DayOfWeek)dayOfWeek);
 
                 if (schedule != null)
                 {
@@ -332,8 +451,13 @@ namespace HealthcareApp.Controllers
             try
             {
                 var doctorId = _userManager.GetUserId(User);
-                // For now, return null since we need to implement proper ID mapping
-                DoctorSchedule? sourceSchedule = null;
+                if (string.IsNullOrEmpty(doctorId))
+                {
+                    return Json(new { success = false, message = "User not authenticated." });
+                }
+
+                var sourceSchedule = await _context.DoctorSchedules
+                    .FirstOrDefaultAsync(s => s.DoctorId == doctorId && s.DayOfWeek == (DayOfWeek)sourceDayOfWeek);
 
                 if (sourceSchedule == null)
                 {
@@ -342,8 +466,8 @@ namespace HealthcareApp.Controllers
 
                 foreach (var targetDay in targetDays)
                 {
-                    // For now, return null since we need to implement proper ID mapping
-                    DoctorSchedule? existingSchedule = null;
+                    var existingSchedule = await _context.DoctorSchedules
+                        .FirstOrDefaultAsync(s => s.DoctorId == doctorId && s.DayOfWeek == (DayOfWeek)targetDay);
 
                     if (existingSchedule != null)
                     {
@@ -362,7 +486,7 @@ namespace HealthcareApp.Controllers
                         // Create new
                         var newSchedule = new DoctorSchedule
                         {
-                            DoctorId = doctorId!,
+                            DoctorId = doctorId,
                             DayOfWeek = (DayOfWeek)targetDay,
                             StartTime = sourceSchedule.StartTime,
                             EndTime = sourceSchedule.EndTime,
@@ -389,6 +513,45 @@ namespace HealthcareApp.Controllers
         public IActionResult Appointments()
         {
             return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ClearAllSchedules()
+        {
+            try
+            {
+                var doctorId = _userManager.GetUserId(User);
+                if (string.IsNullOrEmpty(doctorId))
+                {
+                    return Json(new { success = false, message = "User not authenticated." });
+                }
+
+                // Remove all schedules for this doctor
+                var schedules = await _context.DoctorSchedules
+                    .Where(s => s.DoctorId == doctorId)
+                    .ToListAsync();
+
+                var specialSchedules = await _context.SpecialSchedules
+                    .Where(s => s.DoctorId == doctorId)
+                    .ToListAsync();
+
+                var templates = await _context.ScheduleTemplates
+                    .Where(t => t.DoctorId == doctorId)
+                    .ToListAsync();
+
+                _context.DoctorSchedules.RemoveRange(schedules);
+                _context.SpecialSchedules.RemoveRange(specialSchedules);
+                _context.ScheduleTemplates.RemoveRange(templates);
+
+                await _context.SaveChangesAsync();
+
+                return Json(new { success = true, message = $"Cleared {schedules.Count} schedules, {specialSchedules.Count} special schedules, and {templates.Count} templates." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Error: " + ex.Message });
+            }
         }
     }
 }

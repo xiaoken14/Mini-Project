@@ -16,6 +16,8 @@ namespace HealthcareApp.Models
         public int TotalSlots { get; set; }
         public int BookedSlots { get; set; }
         public int AvailableSlots { get; set; }
+        public List<DoctorSchedule> WeeklySchedules { get; set; } = new();
+        public string DoctorName { get; set; } = string.Empty;
     }
 
     public class TimeSlot

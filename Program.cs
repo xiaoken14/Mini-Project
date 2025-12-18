@@ -6,7 +6,8 @@ using HealthcareApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Let .NET choose available ports automatically
+// Configure to use port 5000 (default)
+builder.WebHost.UseUrls("http://localhost:5000");
 
 // Add services to the container.
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -44,9 +45,16 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
+    // Only use HTTPS redirection in production with proper HTTPS setup
+    // app.UseHttpsRedirection();
+}
+else
+{
+    app.UseExceptionHandler("/Home/Error");
 }
 
-app.UseHttpsRedirection();
+// Disable HTTPS redirection for development to avoid warnings
+// app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
@@ -66,6 +74,9 @@ using (var scope = app.Services.CreateScope())
 
         // Ensure database is created
         context.Database.EnsureCreated();
+        
+        // Apply pending migrations manually
+        await ApplyMigrationManually(context);
 
         // Create roles
         await CreateRoles(roleManager);
@@ -168,5 +179,111 @@ async Task CreateDoctorUser(UserManager<ApplicationUser> userManager)
             doctorUser.Specialization = "General Practice";
             await userManager.UpdateAsync(doctorUser);
         }
+    }
+}
+
+
+async Task ApplyMigrationManually(ApplicationDbContext context)
+{
+    try
+    {
+        var connection = context.Database.GetDbConnection();
+        await connection.OpenAsync();
+        
+        using var command = connection.CreateCommand();
+        
+        // Check if DoctorId column exists
+        command.CommandText = "PRAGMA table_info(AspNetUsers)";
+        using var reader = await command.ExecuteReaderAsync();
+        
+        bool hasDoctorId = false;
+        bool hasPatientId = false;
+        
+        while (await reader.ReadAsync())
+        {
+            var columnName = reader.GetString(1);
+            if (columnName == "DoctorId") hasDoctorId = true;
+            if (columnName == "PatientId") hasPatientId = true;
+        }
+        reader.Close();
+        
+        // Add columns if they don't exist
+        if (!hasDoctorId)
+        {
+            Console.WriteLine("Adding DoctorId column to AspNetUsers...");
+            command.CommandText = "ALTER TABLE AspNetUsers ADD COLUMN DoctorId INTEGER NULL";
+            await command.ExecuteNonQueryAsync();
+            Console.WriteLine("✓ DoctorId column added");
+        }
+        
+        if (!hasPatientId)
+        {
+            Console.WriteLine("Adding PatientId column to AspNetUsers...");
+            command.CommandText = "ALTER TABLE AspNetUsers ADD COLUMN PatientId INTEGER NULL";
+            await command.ExecuteNonQueryAsync();
+            Console.WriteLine("✓ PatientId column added");
+        }
+
+        // Check if ConsultationFee column exists in Appointment table
+        command.CommandText = "PRAGMA table_info(Appointment)";
+        using var appointmentReader = await command.ExecuteReaderAsync();
+        
+        bool hasConsultationFee = false;
+        while (await appointmentReader.ReadAsync())
+        {
+            var columnName = appointmentReader.GetString(1);
+            if (columnName == "Consultation_Fee") hasConsultationFee = true;
+        }
+        appointmentReader.Close();
+
+        if (!hasConsultationFee)
+        {
+            Console.WriteLine("Adding ConsultationFee column to Appointment...");
+            command.CommandText = "ALTER TABLE Appointment ADD COLUMN Consultation_Fee DECIMAL(10,2) DEFAULT 300.00";
+            await command.ExecuteNonQueryAsync();
+            Console.WriteLine("✓ ConsultationFee column added");
+        }
+        
+        // Create __EFMigrationsHistory table if it doesn't exist
+        command.CommandText = @"
+            CREATE TABLE IF NOT EXISTS __EFMigrationsHistory (
+                MigrationId TEXT NOT NULL PRIMARY KEY,
+                ProductVersion TEXT NOT NULL
+            )";
+        await command.ExecuteNonQueryAsync();
+        
+        // Add migration history records if not exist
+        var migrations = new[]
+        {
+            "20251218025302_AddLegacyIdLinksToApplicationUser",
+            "20251218034607_AddConsultationFeeToAppointment"
+        };
+
+        foreach (var migrationId in migrations)
+        {
+            command.CommandText = $@"
+                SELECT COUNT(*) FROM __EFMigrationsHistory 
+                WHERE MigrationId = '{migrationId}'";
+            var migrationExists = Convert.ToInt32(await command.ExecuteScalarAsync()) > 0;
+            
+            if (!migrationExists)
+            {
+                command.CommandText = $@"
+                    INSERT INTO __EFMigrationsHistory (MigrationId, ProductVersion)
+                    VALUES ('{migrationId}', '8.0.0')";
+                await command.ExecuteNonQueryAsync();
+                Console.WriteLine($"✓ Migration {migrationId} recorded");
+            }
+        }
+        
+        if (!hasDoctorId || !hasPatientId || !hasConsultationFee)
+        {
+            Console.WriteLine("✓ Database migration applied successfully!");
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Warning: Could not apply migration automatically: {ex.Message}");
+        Console.WriteLine("Please run the migration manually using the SQL in DOCTOR_SCHEDULE_FIX_SUMMARY.md");
     }
 }

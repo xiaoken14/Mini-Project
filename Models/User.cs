@@ -25,6 +25,12 @@ namespace HealthcareApp.Models
         
         // Additional tracking properties
         public DateTime? LastLoginTime { get; set; }
+        
+        // Link to legacy Doctor table (nullable for non-doctors)
+        public int? DoctorId { get; set; }
+        
+        // Link to legacy Patient table (nullable for non-patients)
+        public int? PatientId { get; set; }
     }
 
     public enum UserRole

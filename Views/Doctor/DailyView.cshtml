@@ -13,7 +13,9 @@
                             <h4 class="mb-0">
                                 <i class="fas fa-calendar-day me-2"></i>Daily Schedule - @ViewBag.DoctorName
                             </h4>
-                            <small class="text-muted">@Model.Date.ToString("dddd, MMMM dd, yyyy")</small>
+                            <small class="text-muted">
+                                @((Model != null ? Model.Date : DateTime.Today).ToString("dddd, MMMM dd, yyyy"))
+                            </small>
                         </div>
                         <div class="col-md-6 text-md-end">
                             <div class="btn-group me-2" role="group">
@@ -41,11 +43,13 @@
                                 <i class="fas fa-calendar-times fa-4x text-muted"></i>
                             </div>
                             <h5 class="text-muted">No Schedule Set</h5>
-                            <p class="text-muted">You haven't set your availability for @Model.DayOfWeek.ToString().</p>
+                            <p class="text-muted">You haven't set your availability for @((Model != null ? Model.DayOfWeek : DateTime.Today.DayOfWeek).ToString()).</p>
                             <a href="@Url.Action("Schedule")" class="btn btn-primary">
                                 <i class="fas fa-plus me-1"></i>Set Schedule
                             </a>
                         </div>
+
+
                     }
                     else
                     {
@@ -56,7 +60,7 @@
                                     <div class="card-body text-center">
                                         <i class="fas fa-clock fa-2x mb-2"></i>
                                         <h6>Working Hours</h6>
-                                        <p class="mb-0">@string.Format("{0:D2}:{1:D2}", Model.DaySchedule.StartTime.Hours, Model.DaySchedule.StartTime.Minutes) - @string.Format("{0:D2}:{1:D2}", Model.DaySchedule.EndTime.Hours, Model.DaySchedule.EndTime.Minutes)</p>
+                                        <p class="mb-0">@FormatTimeRange(Model.DaySchedule.StartTime, Model.DaySchedule.EndTime)</p>
                                     </div>
                                 </div>
                             </div>
@@ -93,9 +97,11 @@
                         {
                             <div class="alert alert-info mb-4">
                                 <i class="fas fa-coffee me-2"></i>
-                                <strong>Break Time:</strong> @string.Format("{0:D2}:{1:D2}", Model.DaySchedule.BreakStartTime.Value.Hours, Model.DaySchedule.BreakStartTime.Value.Minutes) - @string.Format("{0:D2}:{1:D2}", Model.DaySchedule.BreakEndTime.Value.Hours, Model.DaySchedule.BreakEndTime.Value.Minutes)
+                                <strong>Break Time:</strong> @FormatTimeRange(Model.DaySchedule.BreakStartTime.Value, Model.DaySchedule.BreakEndTime.Value)
                             </div>
                         }
+
+
 
                         <!-- Time Slots Grid -->
                         <div class="row">
@@ -158,16 +164,24 @@
                                         </h6>
                                         <div class="row">
                                             <div class="col-md-3 col-6 mb-2">
-                                                <span class="badge bg-success me-2"><i class="fas fa-check-circle"></i></span>Available
+                                                <span class="badge bg-success me-2">
+                                                    <i class="fas fa-check-circle"></i>
+                                                </span>Available
                                             </div>
                                             <div class="col-md-3 col-6 mb-2">
-                                                <span class="badge bg-warning me-2"><i class="fas fa-user-check"></i></span>Booked
+                                                <span class="badge bg-warning me-2">
+                                                    <i class="fas fa-user-check"></i>
+                                                </span>Booked
                                             </div>
                                             <div class="col-md-3 col-6 mb-2">
-                                                <span class="badge bg-secondary me-2"><i class="fas fa-clock"></i></span>Past Time
+                                                <span class="badge bg-secondary me-2">
+                                                    <i class="fas fa-clock"></i>
+                                                </span>Past Time
                                             </div>
                                             <div class="col-md-3 col-6 mb-2">
-                                                <span class="badge bg-info me-2"><i class="fas fa-coffee"></i></span>Break Time
+                                                <span class="badge bg-info me-2">
+                                                    <i class="fas fa-coffee"></i>
+                                                </span>Break Time
                                             </div>
                                         </div>
                                     </div>
@@ -211,40 +225,103 @@
         else
             return "Available";
     }
+
+    private string FormatTime(TimeSpan time)
+    {
+        try
+        {
+            return $"{time.Hours:00}:{time.Minutes:00}";
+        }
+        catch
+        {
+            return "00:00";
+        }
+    }
+
+    private string FormatTimeRange(TimeSpan start, TimeSpan end)
+    {
+        try
+        {
+            return $"{FormatTime(start)} - {FormatTime(end)}";
+        }
+        catch
+        {
+            return "Invalid time";
+        }
+    }
 }
 
 @section Styles {
-<link rel="stylesheet" href="~/css/doctor-schedule.css" />
-<style>
-    .card {
-        transition: all 0.3s ease;
-    }
-    .card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    }
-    .btn-group .btn {
-        border-radius: 0;
-    }
-    .btn-group .btn:first-child {
-        border-top-left-radius: 0.375rem;
-        border-bottom-left-radius: 0.375rem;
-    }
-    .btn-group .btn:last-child {
-        border-top-right-radius: 0.375rem;
-        border-bottom-right-radius: 0.375rem;
-    }
-    .bg-opacity-10 {
-        background-color: rgba(var(--bs-bg-opacity), 0.1) !important;
-    }
-    .fa-4x {
-        font-size: 4rem;
-    }
-    .fa-3x {
-        font-size: 3rem;
-    }
-    .fa-2x {
-        font-size: 2rem;
-    }
-</style>
+    <link rel="stylesheet" href="~/css/doctor-schedule.css" />
+    <style>
+        .card {
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .btn-group .btn {
+            border-radius: 0;
+        }
+
+        .btn-group .btn:first-child {
+            border-top-left-radius: 0.375rem;
+            border-bottom-left-radius: 0.375rem;
+        }
+
+        .btn-group .btn:last-child {
+            border-top-right-radius: 0.375rem;
+            border-bottom-right-radius: 0.375rem;
+        }
+
+        .bg-opacity-10 {
+            background-color: rgba(var(--bs-bg-opacity), 0.1) !important;
+        }
+
+        .fa-4x {
+            font-size: 4rem;
+        }
+
+        .fa-3x {
+            font-size: 3rem;
+        }
+
+        .fa-2x {
+            font-size: 2rem;
+        }
+
+        /* Weekly Availability Diagram Styles */
+        .weekly-diagram .card {
+            min-height: 120px;
+            transition: all 0.2s ease;
+        }
+
+        .weekly-diagram .card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .weekly-diagram .card-body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        @@media (max-width: 768px) {
+            .weekly-diagram .col-lg {
+                flex: 0 0 50%;
+                max-width: 50%;
+            }
+        }
+
+        @@media (max-width: 576px) {
+            .weekly-diagram .col-lg {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+        }
+    </style>
 }

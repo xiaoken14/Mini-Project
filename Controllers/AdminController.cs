@@ -372,12 +372,6 @@ namespace HealthcareApp.Controllers
             return View(reportData);
         }
 
-        // System Settings
-        public IActionResult Settings()
-        {
-            return View();
-        }
-
         // General User Delete
         public async Task<IActionResult> DeleteUser(string id)
         {

@@ -51,6 +51,9 @@ namespace HealthcareApp.Models
         
         public string? Notes { get; set; }
         
+        [Column("Consultation_Fee", TypeName = "DECIMAL(10,2)")]
+        public decimal? ConsultationFee { get; set; } = 300.00m; // Default consultation fee in RM
+        
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
 

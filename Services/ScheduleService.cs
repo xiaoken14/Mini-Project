@@ -27,8 +27,17 @@ namespace HealthcareApp.Services
                 .Where(s => s.DoctorId == doctorId && s.Date >= firstDayOfMonth && s.Date <= lastDayOfMonth)
                 .ToListAsync();
 
-            // For now, return empty appointments since we need to implement proper ID mapping
+            // Get appointments for this doctor
             var appointments = new List<Appointment>();
+            var appUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == doctorId);
+            if (appUser?.DoctorId != null)
+            {
+                appointments = await _context.Appointments
+                    .Where(a => a.DoctorId == appUser.DoctorId.Value && 
+                                a.AppointmentDate >= firstDayOfMonth && 
+                                a.AppointmentDate <= lastDayOfMonth)
+                    .ToListAsync();
+            }
 
             var calendarDays = GenerateCalendarDays(month, weeklySchedules, specialSchedules, appointments);
             var stats = CalculateMonthlyStats(weeklySchedules, specialSchedules, appointments, month);
@@ -163,39 +172,40 @@ namespace HealthcareApp.Services
                     .Where(s => s.DoctorId == doctorId)
                     .ToListAsync();
 
+                if (!currentSchedules.Any())
+                {
+                    return false; // No schedules to save as template
+                }
+
+                // Store template data as JSON in description (workaround)
+                var templateData = currentSchedules.Select(s => new
+                {
+                    DayOfWeek = (int)s.DayOfWeek,
+                    StartTime = s.StartTime.ToString(),
+                    EndTime = s.EndTime.ToString(),
+                    BreakStartTime = s.BreakStartTime?.ToString(),
+                    BreakEndTime = s.BreakEndTime?.ToString(),
+                    SlotDurationMinutes = s.SlotDurationMinutes,
+                    IsAvailable = s.IsAvailable
+                }).ToList();
+
+                var templateJson = System.Text.Json.JsonSerializer.Serialize(templateData);
+
                 var template = new ScheduleTemplate
                 {
                     DoctorId = doctorId,
                     Name = templateName,
-                    Description = description,
+                    Description = $"{description ?? ""}\n__TEMPLATE_DATA__:{templateJson}",
                     CreatedAt = DateTime.UtcNow
                 };
 
                 _context.ScheduleTemplates.Add(template);
                 await _context.SaveChangesAsync();
-
-                // Copy current schedules to template
-                foreach (var schedule in currentSchedules)
-                {
-                    var templateSchedule = new DoctorSchedule
-                    {
-                        DoctorId = doctorId,
-                        DayOfWeek = schedule.DayOfWeek,
-                        StartTime = schedule.StartTime,
-                        EndTime = schedule.EndTime,
-                        BreakStartTime = schedule.BreakStartTime,
-                        BreakEndTime = schedule.BreakEndTime,
-                        SlotDurationMinutes = schedule.SlotDurationMinutes,
-                        IsAvailable = schedule.IsAvailable
-                    };
-                    template.WeeklySchedules.Add(templateSchedule);
-                }
-
-                await _context.SaveChangesAsync();
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"Error saving template: {ex.Message}");
                 return false;
             }
         }
@@ -205,10 +215,20 @@ namespace HealthcareApp.Services
             try
             {
                 var template = await _context.ScheduleTemplates
-                    .Include(t => t.WeeklySchedules)
                     .FirstOrDefaultAsync(t => t.Id == templateId && t.DoctorId == doctorId);
 
-                if (template == null)
+                if (template == null || string.IsNullOrEmpty(template.Description))
+                    return false;
+
+                // Extract template data from description (workaround)
+                var templateDataStart = template.Description.IndexOf("__TEMPLATE_DATA__:");
+                if (templateDataStart == -1)
+                    return false;
+
+                var templateJson = template.Description.Substring(templateDataStart + "__TEMPLATE_DATA__:".Length);
+                var templateData = System.Text.Json.JsonSerializer.Deserialize<List<dynamic>>(templateJson);
+
+                if (templateData == null)
                     return false;
 
                 // Remove existing schedules
@@ -218,18 +238,23 @@ namespace HealthcareApp.Services
                 _context.DoctorSchedules.RemoveRange(existingSchedules);
 
                 // Apply template schedules
-                foreach (var templateSchedule in template.WeeklySchedules)
+                foreach (var item in templateData)
                 {
+                    var jsonElement = (System.Text.Json.JsonElement)item;
                     var newSchedule = new DoctorSchedule
                     {
                         DoctorId = doctorId,
-                        DayOfWeek = templateSchedule.DayOfWeek,
-                        StartTime = templateSchedule.StartTime,
-                        EndTime = templateSchedule.EndTime,
-                        BreakStartTime = templateSchedule.BreakStartTime,
-                        BreakEndTime = templateSchedule.BreakEndTime,
-                        SlotDurationMinutes = templateSchedule.SlotDurationMinutes,
-                        IsAvailable = templateSchedule.IsAvailable,
+                        DayOfWeek = (DayOfWeek)jsonElement.GetProperty("DayOfWeek").GetInt32(),
+                        StartTime = TimeSpan.Parse(jsonElement.GetProperty("StartTime").GetString() ?? "09:00:00"),
+                        EndTime = TimeSpan.Parse(jsonElement.GetProperty("EndTime").GetString() ?? "17:00:00"),
+                        BreakStartTime = jsonElement.TryGetProperty("BreakStartTime", out var breakStart) && 
+                                        !breakStart.ValueKind.Equals(System.Text.Json.JsonValueKind.Null) 
+                                        ? TimeSpan.Parse(breakStart.GetString() ?? "12:00:00") : null,
+                        BreakEndTime = jsonElement.TryGetProperty("BreakEndTime", out var breakEnd) && 
+                                      !breakEnd.ValueKind.Equals(System.Text.Json.JsonValueKind.Null) 
+                                      ? TimeSpan.Parse(breakEnd.GetString() ?? "13:00:00") : null,
+                        SlotDurationMinutes = jsonElement.GetProperty("SlotDurationMinutes").GetInt32(),
+                        IsAvailable = jsonElement.GetProperty("IsAvailable").GetBoolean(),
                         CreatedAt = DateTime.UtcNow,
                         UpdatedAt = DateTime.UtcNow
                     };
@@ -239,18 +264,34 @@ namespace HealthcareApp.Services
                 await _context.SaveChangesAsync();
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"Error applying template: {ex.Message}");
                 return false;
             }
         }
 
         public async Task<List<ScheduleTemplate>> GetScheduleTemplatesAsync(string doctorId)
         {
-            return await _context.ScheduleTemplates
+            var templates = await _context.ScheduleTemplates
                 .Where(t => t.DoctorId == doctorId)
                 .OrderBy(t => t.Name)
                 .ToListAsync();
+
+            // Clean up descriptions for display (remove template data)
+            foreach (var template in templates)
+            {
+                if (!string.IsNullOrEmpty(template.Description))
+                {
+                    var templateDataStart = template.Description.IndexOf("__TEMPLATE_DATA__:");
+                    if (templateDataStart > 0)
+                    {
+                        template.Description = template.Description.Substring(0, templateDataStart).Trim();
+                    }
+                }
+            }
+
+            return templates;
         }
 
         private List<CalendarDay> GenerateCalendarDays(DateTime month, List<DoctorSchedule> weeklySchedules, 

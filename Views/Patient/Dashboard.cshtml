@@ -37,7 +37,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-xl-3 col-md-6 mb-3">
             <div class="card stats-card border-0 shadow-sm">
                 <div class="card-body">
@@ -53,7 +53,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-xl-3 col-md-6 mb-3">
             <div class="card stats-card border-0 shadow-sm">
                 <div class="card-body">
@@ -69,7 +69,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-xl-3 col-md-6 mb-3">
             <div class="card stats-card border-0 shadow-sm">
                 <div class="card-body">
@@ -112,16 +112,26 @@
                                         <div class="date-month text-muted small">@appointment.AppointmentDate.ToString("MMM")</div>
                                     </div>
                                     <div class="appointment-details flex-grow-1">
-                                        <h6 class="mb-1">Dr. @appointment.Doctor.FirstName @appointment.Doctor.LastName</h6>
+                                        <h6 class="mb-1">Dr. @appointment.Doctor.FullName</h6>
                                         <p class="mb-1 text-muted small">@appointment.Reason</p>
                                         <div class="d-flex align-items-center">
-                                            <span class="badge bg-@(appointment.Status == "Confirmed" ? "success" : "warning") me-2">
-                                                @appointment.Status
-                                            </span>
+                                            <span class="badge bg-@(appointment.Status == "Confirmed" ? "success" : "warning") me-2">@appointment.Status</span>
                                             <small class="text-muted">
                                                 <i class="fas fa-clock me-1"></i>@appointment.AppointmentTime.ToString(@"hh\:mm")
                                             </small>
                                         </div>
+                                    </div>
+                                    <div class="appointment-actions">
+                                        @if (appointment.AppointmentDate > DateTime.Today)
+                                        {
+                                            <form asp-action="CancelAppointment" method="post" class="d-inline" 
+                                                  onsubmit="return confirm('Are you sure you want to cancel this appointment?')">
+                                                <input type="hidden" name="id" value="@appointment.AppointmentId" />
+                                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
+                                            </form>
+                                        }
                                     </div>
                                 </div>
                             }
@@ -160,6 +170,13 @@
                         <a asp-action="Appointments" class="btn btn-outline-info">
                             <i class="fas fa-history me-2"></i>View History
                         </a>
+                        <a asp-action="Payments" class="btn btn-outline-warning position-relative">
+                            <i class="fas fa-credit-card me-2"></i>Payments
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-success">
+                                20% OFF
+                                <span class="visually-hidden">discount available</span>
+                            </span>
+                        </a>
                         <button class="btn btn-outline-success" disabled>
                             <i class="fas fa-file-medical me-2"></i>Medical Records
                         </button>
@@ -184,7 +201,7 @@
                                     <i class="fas fa-check-circle text-success"></i>
                                 </div>
                                 <div class="activity-details">
-                                    <div class="fw-medium">Visit with Dr. @appointment.Doctor.FirstName @appointment.Doctor.LastName</div>
+                                    <div class="fw-medium">Visit with Dr. @appointment.Doctor.FullName</div>
                                     <small class="text-muted">@appointment.AppointmentDate.ToString("MMM dd, yyyy")</small>
                                 </div>
                             </div>
@@ -204,81 +221,81 @@
 </div>
 
 <style>
-.dashboard-content {
-    padding: 20px;
-}
+    .dashboard-content {
+        padding: 20px;
+    }
 
-.dashboard-title {
-    font-size: 2rem;
-    font-weight: 600;
-    color: #2c3e50;
-}
+    .dashboard-title {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #2c3e50;
+    }
 
-.dashboard-subtitle {
-    font-size: 1.1rem;
-}
+    .dashboard-subtitle {
+        font-size: 1.1rem;
+    }
 
-.stats-card {
-    transition: transform 0.2s ease-in-out;
-}
+    .stats-card {
+        transition: transform 0.2s ease-in-out;
+    }
 
-.stats-card:hover {
-    transform: translateY(-2px);
-}
+    .stats-card:hover {
+        transform: translateY(-2px);
+    }
 
-.stats-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
+    .stats-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 
-.stats-number {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #2c3e50;
-}
+    .stats-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #2c3e50;
+    }
 
-.stats-label {
-    font-size: 0.875rem;
-    font-weight: 500;
-}
+    .stats-label {
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
 
-.appointment-item {
-    border: 1px solid #e9ecef;
-    transition: all 0.2s ease-in-out;
-}
+    .appointment-item {
+        border: 1px solid #e9ecef;
+        transition: all 0.2s ease-in-out;
+    }
 
-.appointment-item:hover {
-    border-color: #007bff;
-    box-shadow: 0 2px 8px rgba(0,123,255,0.1);
-}
+    .appointment-item:hover {
+        border-color: #007bff;
+        box-shadow: 0 2px 8px rgba(0,123,255,0.1);
+    }
 
-.appointment-date {
-    min-width: 60px;
-}
+    .appointment-date {
+        min-width: 60px;
+    }
 
-.date-day {
-    font-size: 1.25rem;
-}
+    .date-day {
+        font-size: 1.25rem;
+    }
 
-.activity-item {
-    padding-bottom: 12px;
-    border-bottom: 1px solid #f8f9fa;
-}
+    .activity-item {
+        padding-bottom: 12px;
+        border-bottom: 1px solid #f8f9fa;
+    }
 
-.activity-item:last-child {
-    border-bottom: none;
-    padding-bottom: 0;
-}
+    .activity-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
 
-.card {
-    border-radius: 12px;
-}
+    .card {
+        border-radius: 12px;
+    }
 
-.btn {
-    border-radius: 8px;
-}
+    .btn {
+        border-radius: 8px;
+    }
 </style>
